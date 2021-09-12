@@ -1,12 +1,19 @@
 // server.js
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import customValidator from './source/usingDB/middleware/validator/CustomValidator.js';
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+
+
+// import express from 'express';
+// import dotenv from 'dotenv';
+// import cors from 'cors';
+// import bodyParser from 'body-parser';
+// import customValidator from './source/usingDB/middleware/validator/CustomValidator.js';
+
+// import { createRequire } from "module";
+// const require = createRequire(import.meta.url);
   
 dotenv.config(); 
    
