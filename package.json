@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev-start": "babel-watch server.js",
+    "build": "babel server.js --out-dir build",
+    "dev-test": "mocha --timeout 10000 --reporter mochawesome --reporter-options reportDir=./public/test,reportFilename=itimber-api --require babel-core/register --require babel-polyfill --require=dotenv/config"
   },
   "author": "",
   "license": "ISC",

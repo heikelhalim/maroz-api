@@ -1,7 +1,9 @@
 // const PenggunaModel = require("../../models/sequelize/User");
 const bcrypt =  require("bcryptjs");
 
-const { check, validationResult } = require('express-validator/check');
+// const { check, validationResult } = require('express-validator/check');
+const { check, validationResult } = require('express-validator');
+
 
 module.exports = { 
 
