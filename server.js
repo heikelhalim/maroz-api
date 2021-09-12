@@ -78,9 +78,8 @@ app.get("/", (req, res) => {
 });
 
   
-
-app.use(require('./source/usingDB/routes/authentication/Authentication')); //authentication
-console.log("Test");
+// Authentication
+// app.use(require('./source/usingDB/routes/authentication/Authentication')); 
  
 
 // set port, listen for requests
