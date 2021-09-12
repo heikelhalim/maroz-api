@@ -79,9 +79,9 @@ app.get("/", (req, res) => {
 
   
 
-app.use(require('../maroz-api/source/usingDB/routes/authentication/Authentication')); //authentication
-
-
+app.use(require('./source/usingDB/routes/authentication/Authentication')); //authentication
+console.log("Test");
+ 
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
