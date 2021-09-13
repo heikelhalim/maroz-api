@@ -80,7 +80,9 @@ app.get("/", (req, res) => {
   
 // Authentication
 app.use(require('./source/usingDB/routes/authentication/Authentication')); 
- 
+
+app.use(require('./source/usingDB/routes/syarikat/Syarikat')); 
+
 
 // set port, listen for requests
 const PORT = process.env.PORT || 80;

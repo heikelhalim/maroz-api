@@ -1,10 +1,11 @@
 const SyarikatModel = require("../../models/sequelize/Syarikat");
+const Helper = require("../../controller/Helper");
+const { Op } = require("sequelize");
 
 
 // import CryptoJS from 'crypto-js';
 // import jwt from 'jsonwebtoken';
 // import bcrypt  from 'bcryptjs';
-// import Helper from '../Helper';
 // import seqlib from 'sequelize';
 // import uuidv4 from 'uuid/v4';
 // import moment from 'moment';
@@ -12,12 +13,12 @@ const SyarikatModel = require("../../models/sequelize/Syarikat");
 const Syarikat = {
 
     /**
-     * SignUp
-     * @param {object} req 
-     * @param {object} res
-     * @returns {object} user object 
-     */
-     async create(req, res) {
+    * SignUp
+    * @param {object} req 
+    * @param {object} res
+    * @returns {object} user object 
+    */
+    async create(req, res) {
         try {
             // Finds the validation errors in this request and wraps them in an object with handy functions
             // const errors = validationResult(req);
@@ -29,23 +30,74 @@ const Syarikat = {
 
             const data = { 
                 "kod_syarikat" : req.body.kod_syarikat,
-                "email" : req.body.email,
-                "nama_pengguna" : req.body.nama_pengguna,
-                "katalaluan" :  bcrypt.hashSync(req.body.katalaluan, 8),
-                "isActive" : req.body.isActive 
+                "nama_syarikat" : req.body.nama_syarikat,
+                "id_negeri" :  req.body.id_negeri,
+                "id_jenis_perniagaan" : req.body.id_jenis_perniagaan ,
+                "is_aktif": req.body.is_aktif 
             };
 
-            const pengguna = await PenggunaModel.create(dataPengguna, {
+            const syarikat = await SyarikatModel.create(data, {
                 transaction : transaction
             });    
 
+            await transaction.commit();
+            return res.status(200).send(syarikat);
+        } catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
 
-            if (!req.body.nama_pengguna || !req.body.katalaluan) {
-                return res.status(400).send({'message': 'Some values are missing'});
+    async getList(req, res) {
+        try {
+
+            const pageSize = req.body.sizePerPage || 10;
+            const page = req.body.page || 1;
+ 
+            var listsyarikat = await SyarikatModel.findAndCountAll({
+                subQuery: false,
+                distinct : true,
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                limit : pageSize, 
+                offset : Helper.offset(page, pageSize),    
+                order : [['id_syarikat', 'DESC']],
+
+            });
+                            
+            if (!listsyarikat){
+                return res.status(404).send({'message': 'List pindah kayu tidak dijumpai'});
             }
 
-            await transaction.commit();
-            return res.status(200).send(pengguna);
+            return res.status(200).send({
+                'totalSize' : listsyarikat.count,
+                'sizePerPage' : pageSize,
+                'page' : page,
+                'data' : listsyarikat.rows,
+            });
+
+
+            }catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+    async getDetails(req, res) {
+        try {
+
+            var detailSyarikat = await SyarikatModel.findByPk(req.params.id,{
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                }
+            });
+
+            if (!detailSyarikat){
+                return res.status(404).send({'message': 'Details Syarikat tidak dijumpai'});
+            }
+
+            return res.status(200).send(detailSyarikat);
         } catch(error) {
             console.log(error);
             return res.status(400).send(error);
@@ -53,6 +105,5 @@ const Syarikat = {
     },
 
 }
-
 
 module.exports = Syarikat;
