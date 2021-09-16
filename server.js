@@ -81,7 +81,11 @@ app.get("/", (req, res) => {
 // Authentication
 app.use(require('./source/usingDB/routes/authentication/Authentication')); 
 
+//Syarikat
 app.use(require('./source/usingDB/routes/syarikat/Syarikat')); 
+
+//Common
+app.use(require('./source/usingDB/routes/Common')); 
 
 
 // set port, listen for requests

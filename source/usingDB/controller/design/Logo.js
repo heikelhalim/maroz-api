@@ -1,4 +1,4 @@
-const SyarikatModel = require("../../models/sequelize/Syarikat");
+const LogoModel = require("../../models/sequelize/Syarikat");
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const { moment } = require("moment");
