@@ -87,6 +87,9 @@ app.use(require('./source/usingDB/routes/syarikat/Syarikat'));
 //Common
 app.use(require('./source/usingDB/routes/Common')); 
 
+//Design
+app.use(require('./source/usingDB/routes/design/Logo')); 
+
 
 // set port, listen for requests
 const PORT = process.env.PORT || 80;
