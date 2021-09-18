@@ -144,7 +144,7 @@ const Logo = {
                 },
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
-                order : [['id_syarikat', 'DESC']],
+                order : [['id_logo', 'DESC']],
                 include : [
                     {                                
                         model : KodKeduaModel,

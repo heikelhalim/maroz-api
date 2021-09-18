@@ -76,9 +76,11 @@ app.use(require('./source/usingDB/routes/syarikat/Syarikat'));
 //Common
 app.use(require('./source/usingDB/routes/Common')); 
 
-//Design
+//Design Logo
 app.use(require('./source/usingDB/routes/design/Logo')); 
 
+//Design Pakaian
+app.use(require('./source/usingDB/routes/design/Pakaian')); 
 
 
 

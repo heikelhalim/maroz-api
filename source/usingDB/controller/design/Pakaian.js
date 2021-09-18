@@ -1,14 +1,17 @@
+const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
 const DesignLogoModel = require("../../models/sequelize/DesignLogo");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const SyarikatModel = require("../../models/sequelize/Syarikat");
+
+
 
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const { moment } = require("moment");
 
+const fs = require('fs-extra')
 
-
-const Syarikat = {
+const Pakaian = {
 
     /**
     * SignUp
@@ -24,49 +27,77 @@ const Syarikat = {
             //     return res.status(422).json({ errors: errors.array() });
             // }
 
-            const transaction = await DesignLogoModel.sequelize.transaction();
+            const transaction = await DesignPakaianModel.sequelize.transaction();
 
             const data = { 
-                "kod_logo" : req.body.kod_logo,
+                "kod_design" : req.body.kod_design,
+                "tarikh_design" : req.body.tarikh_design,
                 "keterangan" : req.body.keterangan,
-                "id_jenis_logo" :  req.body.id_jenis_logo,
-                "id_jenis_sulaman" : req.body.id_jenis_sulaman ,
-                "is_aktif": req.body.is_aktif,
-                "tarikh_logo": req.body.tarikh_logo,
-                "id_syarikat": req.body.id_syarikat,
-                "base_warna": req.body.base_warna,
-                "id_jenis_kain": req.body.id_jenis_kain,
-                "warna_teks": req.body.warna_teks,
-                "warna_border": req.body.warna_border,
-                "text": req.body.text,
-                "font": req.body.font,
-                "style": req.body.style,
-                "nota": req.body.nota,
-                "id_jenis_patch": req.body.id_jenis_patch,
+                "id_jenis_pakaian" : req.body.id_jenis_pakaian,
+                "id_jawatan" : req.body.id_jawatan,
+                "id_kategori" : req.body.id_kategori,
+                "id_logo" : req.body.id_logo,
+                "is_butang" : req.body.is_butang,
+                "is_sulam" : req.body.is_sulam,
+                "is_qc" : req.body.is_qc,
+                "is_aktif" : req.body.is_aktif,
+
+                //Image
+                "file_name": req.file.filename,
+                "file_path": req.file.destination,
+                "file_mimetype": req.file.mimetype,
+                "file_original_name": req.file.originalname,
 
             };
 
 
-            var logo;
-            if (req.body.id_logo)
+            var pakaian;
+            if (req.body.id_dsgn_pakaian)
             {
-                //Update
-                // dataPindahKayu["updated_by"] = req.decoded.id_pengguna;
 
-                var existLogo = await DesignLogoModel.findByPk(req.body.id_logo, {
+                var existPakaian = await DesignPakaianModel.findByPk(req.body.id_dsgn_pakaian, {
                     attributes: { 
                         exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
                         },
                     });
 
 
-                if(!existLogo)
+                if(!existPakaian)
                 {
                     return res.status(404).send({'message': 'Detail logo tidak dijumpai'});
                 }
 
+                //Delete existing pakaian image
+
+                var filePath = process.env.DOCUMENTS+ existPakaian.file_path+"/"+existPakaian.file_name;
+
+
+                //Kena tambah logik file wujud ke tak. Pending lagi.
+
+                if (fs.existsSync(filePath)) 
+                {
+                    //file exists
+                    console.log(filePath);
+                    fs.unlink(filePath, (err) => {
+                        if (err){
+                            return res.status(400).send({"message" : "Gagal memadam dokumen. Sila delete Kod Pakaian"});
+                        }        
+                    });
+    
+                }
+                else
+                {
+                    console.log("***************************************");
+                    console.log("Logo file tak wujud semasa update pakaian. Upload new image.");
+                    console.log("***************************************");
+                }
+
+
+
+
+
                 
-                logo = await existLogo.update(data, {
+                pakaian = await existPakaian.update(data, {
                     transaction : transaction
                 });                
 
@@ -74,11 +105,11 @@ const Syarikat = {
             else
             {
                 //Create
-                logo = await DesignLogoModel.create(data, {
+                pakaian = await DesignPakaianModel.create(data, {
                     transaction : transaction
                 });   
 
-                //Upload Picture
+
 
             }
 
@@ -88,7 +119,7 @@ const Syarikat = {
             //Upload Picture
 
             await transaction.commit();
-            return res.status(200).send(logo);
+            return res.status(200).send(pakaian);
         } catch(error) {
             console.log(error);
             return res.status(400).send(error);
@@ -101,7 +132,7 @@ const Syarikat = {
             const pageSize = req.body.sizePerPage || 10;
             const page = req.body.page || 1;
  
-            var listLogo = await DesignLogoModel.findAndCountAll({
+            var listLogo = await DesignPakaianModel.findAndCountAll({
                 subQuery: false,
                 distinct : true,
                 attributes: { 
@@ -109,27 +140,53 @@ const Syarikat = {
                 },
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
-                order : [['id_syarikat', 'DESC']],
+                order : [['id_dsgn_pakaian', 'DESC']],
                 include : [
                     {                                
                         model : KodKeduaModel,
-                        as : 'JenisKain',
+                        as : 'Jawatan',
                         attributes: ['kod_ref','keterangan']                    
                     },
                     {                                
                         model : KodKeduaModel,
-                        as : 'JenisPatch',
+                        as : 'JenisPakaian',
                         attributes: ['kod_ref','keterangan']                    
                     },
                     {                                
                         model : KodKeduaModel,
-                        as : 'JenisSulaman',
+                        as : 'Kategori',
                         attributes: ['kod_ref','keterangan']                    
                     },
                     {                                
-                        model : SyarikatModel,
-                        as : 'Syarikat',
-                        attributes: ['kod_syarikat','nama_syarikat']                    
+                        model : DesignLogoModel,
+                        as : 'Logo',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisKain',
+                                attributes: ['kod_ref','keterangan']                    
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPatch',
+                                attributes: ['kod_ref','keterangan']                    
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisSulaman',
+                                attributes: ['kod_ref','keterangan']                    
+                            },
+                            {                                
+                                model : SyarikatModel,
+                                as : 'Syarikat',
+                                attributes: ['kod_syarikat','nama_syarikat']                    
+                            },
+                                    
+                        ]   
+
                     },
 
                     
@@ -158,45 +215,72 @@ const Syarikat = {
     async getDetails(req, res) {
         try {
  
-            var detailLogo = await DesignLogoModel.findByPk(req.params.id,{       
+            var detailPakaian = await DesignPakaianModel.findByPk(req.params.id,{       
                 attributes: { 
                              exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
                 },
-                order : [['id_syarikat', 'DESC']],
+                order : [['id_dsgn_pakaian', 'DESC']],
                 include : [
                     {                                
                         model : KodKeduaModel,
-                        as : 'JenisKain',
+                        as : 'Jawatan',
                         attributes: ['kod_ref','keterangan']                    
                     },
                     {                                
                         model : KodKeduaModel,
-                        as : 'JenisPatch',
+                        as : 'JenisPakaian',
                         attributes: ['kod_ref','keterangan']                    
                     },
                     {                                
                         model : KodKeduaModel,
-                        as : 'JenisSulaman',
+                        as : 'Kategori',
                         attributes: ['kod_ref','keterangan']                    
                     },
                     {                                
-                        model : SyarikatModel,
-                        as : 'Syarikat',
-                        attributes: ['kod_syarikat','nama_syarikat']                    
+                        model : DesignLogoModel,
+                        as : 'Logo',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisKain',
+                                attributes: ['kod_ref','keterangan']                    
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPatch',
+                                attributes: ['kod_ref','keterangan']                    
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisSulaman',
+                                attributes: ['kod_ref','keterangan']                    
+                            },
+                            {                                
+                                model : SyarikatModel,
+                                as : 'Syarikat',
+                                attributes: ['kod_syarikat','nama_syarikat']                    
+                            },
+                                    
+                        ]   
+
                     },
 
                     
                 ]                
+             
 
             });
                             
-            if (!detailLogo){
-                return res.status(404).send({'message': 'Detail logo tidak dijumpai'});
+            if (!detailPakaian){
+                return res.status(404).send({'message': 'Detail pakaian tidak dijumpai'});
             }
 
 
 
-            return res.status(200).send(detailLogo);
+            return res.status(200).send(detailPakaian);
         } catch(error) {
             console.log(error);
             return res.status(400).send(error);
@@ -205,4 +289,4 @@ const Syarikat = {
 
 }
 
-module.exports = Syarikat;
+module.exports = Pakaian;
