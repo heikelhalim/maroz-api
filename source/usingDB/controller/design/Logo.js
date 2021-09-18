@@ -3,12 +3,15 @@ const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const SyarikatModel = require("../../models/sequelize/Syarikat");
 
 const Helper = require("../../controller/Helper");
+
+const fs = require('fs-extra')
+
 const { Op } = require("sequelize");
 const { moment } = require("moment");
 
 
 
-const Syarikat = {
+const Logo = {
 
     /**
     * SignUp
@@ -24,7 +27,13 @@ const Syarikat = {
             //     return res.status(422).json({ errors: errors.array() });
             // }
 
+            if (!req.file)
+            {
+                return res.status(404).send({'message': 'File tiada'});
+            }
+
             const transaction = await DesignLogoModel.sequelize.transaction();
+
 
             const data = { 
                 "kod_logo" : req.body.kod_logo,
@@ -44,14 +53,18 @@ const Syarikat = {
                 "nota": req.body.nota,
                 "id_jenis_patch": req.body.id_jenis_patch,
 
+                //Image
+                "file_name": req.file.filename,
+                "file_path": req.file.destination,
+                "file_mimetype": req.file.mimetype,
+                "file_original_name": req.file.originalname,
             };
 
 
             var logo;
             if (req.body.id_logo)
             {
-                //Update
-                // dataPindahKayu["updated_by"] = req.decoded.id_pengguna;
+
 
                 var existLogo = await DesignLogoModel.findByPk(req.body.id_logo, {
                     attributes: { 
@@ -65,7 +78,34 @@ const Syarikat = {
                     return res.status(404).send({'message': 'Detail logo tidak dijumpai'});
                 }
 
-                
+                //Delete existing logo image
+
+                var filePath = process.env.DOCUMENTS+ existLogo.file_path+"/"+existLogo.file_name;
+
+
+                //Kena tambah logik file wujud ke tak. Pending lagi.
+
+                if (fs.existsSync(filePath)) 
+                {
+                    //file exists
+                    console.log(filePath);
+                    fs.unlink(filePath, (err) => {
+                        if (err){
+                            return res.status(400).send({"message" : "Gagal memadam dokumen. Sila delete Kod Design"});
+                        }        
+                    });
+    
+                }
+                else
+                {
+                    console.log("***************************************");
+                    console.log("Logo file tak wujud semasa update logo. Upload new image.");
+                    console.log("***************************************");
+                }
+
+
+
+                //Update                
                 logo = await existLogo.update(data, {
                     transaction : transaction
                 });                
@@ -78,16 +118,11 @@ const Syarikat = {
                     transaction : transaction
                 });   
 
-                //Upload Picture
 
             }
 
- 
-
-
-            //Upload Picture
-
             await transaction.commit();
+
             return res.status(200).send(logo);
         } catch(error) {
             console.log(error);
@@ -205,4 +240,4 @@ const Syarikat = {
 
 }
 
-module.exports = Syarikat;
+module.exports = Logo;

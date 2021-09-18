@@ -6,29 +6,18 @@ const bodyParser = require("body-parser");
 
 
 
-// import express from 'express';
-// import dotenv from 'dotenv';
-// import cors from 'cors';
-// import bodyParser from 'body-parser';
-// import customValidator from './source/usingDB/middleware/validator/CustomValidator.js';
-
-// import { createRequire } from "module";
-// const require = createRequire(import.meta.url);
-  
 dotenv.config(); 
    
 const app = express();
-// var useragent = require('express-useragent');
-// const requestIp = require('request-ip');
 
-// var bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
 
-
+ 
 //
  
 app.use(express.json()); 
+// app.use(fileUpload());
 
 // app.use(expressValidator({
 //   customValidators: customValidator
@@ -41,7 +30,7 @@ app.use(express.json());
 // app.use(airbrakeExpress.makeMiddleware(airbrake));
 
 // Serving static files from "public" folder
-app.use(express.static('public'));
+app.use(express.static('./public'));
 
 // set timeout
 app.use(function(req, res, next){
@@ -89,6 +78,10 @@ app.use(require('./source/usingDB/routes/Common'));
 
 //Design
 app.use(require('./source/usingDB/routes/design/Logo')); 
+
+
+
+
 
 
 // set port, listen for requests

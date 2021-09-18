@@ -11,6 +11,8 @@ module.exports = (sequelize, type) => {
         id_jenis_sulaman : type.INTEGER,
         file_name : type.STRING,
         file_path : type.STRING,
+        file_mimetype : type.STRING,
+        file_original_name : type.STRING,
         is_aktif : type.BOOLEAN,
         created_at : type.DATE,
         created_by : type.INTEGER,
