@@ -63,7 +63,7 @@ app.use(cors(corsOptions));
  
 // simple route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Maroz application." });
+  res.json({ message: "Welcome to Maroz application. API boleh run." });
 });
 
   
