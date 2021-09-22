@@ -32,7 +32,7 @@ module.exports = (sequelize, type) => {
         nota : type.STRING,
 
         }, {
-        tableName: 'design_logo',
+        tableName: 'dsgn_logo',
         schema: process.env.SCHEMA,
         //timestamps: false,
         paranoid: true,

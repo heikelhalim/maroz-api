@@ -20,15 +20,16 @@ const Pakaian = {
     * @returns {object} user object 
     */
     async create(req, res) { 
-        try {
+        try { 
             // Finds the validation errors in this request and wraps them in an object with handy functions
             // const errors = validationResult(req);
             // if (!errors.isEmpty()) {
             //     return res.status(422).json({ errors: errors.array() });
-            // }
+            // } 
 
             const transaction = await DesignPakaianModel.sequelize.transaction();
-
+ 
+            //Data pakaian 
             const data = { 
                 "kod_design" : req.body.kod_design,
                 "tarikh_design" : req.body.tarikh_design,
@@ -49,6 +50,37 @@ const Pakaian = {
                 "file_original_name": req.file.originalname,
 
             };
+
+
+
+            //Data Jenis Kain
+            var kain = req.body.kain;
+
+            console.log(kain.length);
+
+            //if kain exist
+            if (kain.length>0)
+            {
+                for (var item of kain){  
+                    const objItem = JSON.parse(item);
+
+
+                    console.log(objItem.id_jenis_kain);
+                    console.log(objItem.warna);
+
+                }    
+
+            }
+
+        
+
+            //Data Butang/Zip
+
+            //Data Piping 
+
+            //Data Aksesori
+
+
 
 
             var pakaian;
