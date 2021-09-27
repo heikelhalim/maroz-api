@@ -82,9 +82,11 @@ app.use(require('./source/usingDB/routes/design/Logo'));
 //Design Pakaian
 app.use(require('./source/usingDB/routes/design/Pakaian')); 
 
-//Design Pemakai
+//Pemakai
 app.use(require('./source/usingDB/routes/pemakai/Pemakai')); 
 
+//Kontrak
+app.use(require('./source/usingDB/routes/tempahan/Kontrak')); 
 
 
 

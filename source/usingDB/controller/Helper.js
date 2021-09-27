@@ -1,4 +1,28 @@
+const KodKeduaModel = require("../models/sequelize/KodKedua");
+const KodUtamaModel = require("../models/sequelize/KodUtama");
+
+
 const Helper = {
+
+  async getIdKodKedua(cur_kod, ref_status){
+    const idStatus = await KodKeduaModel.scope(['checkActive']).findOne({
+      where : {kod_ref: cur_kod},
+      include : [
+          {
+              model : KodUtamaModel,
+              as : 'KodUtama',
+              required : true,
+              where : {nama : ref_status},
+          },
+      ]
+    });
+    if (!idStatus){
+        return null;
+    }
+    // console.log(idStatus.id_standard_kedua);
+    return idStatus.id_kod_kedua;
+  },
+
 
 /**
    * Query Join Filter

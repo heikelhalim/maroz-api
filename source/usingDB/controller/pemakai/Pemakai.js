@@ -1,5 +1,8 @@
 const PemakaiModel = require("../../models/sequelize/Pemakai");
 const SyarikatModel = require("../../models/sequelize/Syarikat");
+const KontrakModel = require("../../models/sequelize/Kontrak");
+const TempahanPemakaiModel = require("../../models/sequelize/TempahanPemakai");
+
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const { moment } = require("moment");
@@ -56,35 +59,120 @@ const Pemakai = {
             const pageSize = req.body.sizePerPage || 10;
             const page = req.body.page || 1;
 
-            var where = {};
 
-            if (req.body.id_syarikat)
-            {
-                where["id_syarikat"] = req.body.id_syarikat;
-            }
+            var includeArray = [];
+
+            var modelTempahanPemakai = {};
+            var modelSyarikat = {};
+
+
+            var customFilter = req.body.customFilter;
+            var conditionPemakai = {};
+
+            switch(customFilter.jenispage) {
+                case "pelanggan":
+
+                    var conditionsyarikat = {};
+                    var isRequiredSys = false;
+                    if (customFilter.id_syarikat)
+                    {
+                        //filter by syarikat, if null default semua pemakai
+                        conditionsyarikat["id_syarikat"] = customFilter.id_syarikat;
+                        isRequiredSys = true;
+                    }
+
+                    var modelSyarikat = {
+                        model : SyarikatModel,
+                        as : 'Syarikat',
+                        where : conditionsyarikat,
+                        required : isRequiredSys,
+                        attributes: ['nama_syarikat','kod_syarikat']     
+                    };
+    
+                    includeArray.push(modelSyarikat); 
+                  break;
+                case "kontrak":
+
+                     //Listing Based on TempahanPemakai - View Page Kontrak
+                    var isRequired;
+    
+                    var arrayidpemakai = [];
+
+                    if (customFilter.is_dipilih == true)
+                    {
+                        //List pemakai sudah dipilih utk kontak
+                        isRequired = true;
+
+                        modelTempahanPemakai = {
+                            model : TempahanPemakaiModel,
+                            as : 'TempahanPemakai',
+                            where : { id_kontrak : customFilter.id_kontrak },
+                            required : isRequired,
+                            attributes: ['jenis_tempahan'],
+                            include : [
+                                {
+                                    model : KontrakModel,
+                                    as : 'Kontrak',
+                                    required : true,
+                                    attributes: ['kod_kontrak'],
+                                }
+                            ] 
+                        }
+        
+                        includeArray.push(modelTempahanPemakai);
+
+                    }
+                    else
+                    {
+                        //List pemakai belum dipilih utk kontrak    
+
+                        var listTempahanPemakai = await TempahanPemakaiModel.findAll({
+                            attributes: ["id_pemakai","id_kontrak"],
+                            where : { id_kontrak : customFilter.id_kontrak }
+                        });
+
+                        //map id_pemakai to not include in table Pemakai
+                        for (var idPemakai of listTempahanPemakai)
+                        {
+                            arrayidpemakai.push(idPemakai.id_pemakai);
+                        }
+                        
+                        //get id syarikat from kontrak
+                        const syarikatkontrak = await KontrakModel.findOne({
+                            attributes : ["id_syarikat"],
+                            where : { id_kontrak : customFilter.id_kontrak }
+                        });
+
+                        conditionPemakai = {
+                            id_pemakai : {
+                                [Op.notIn] : arrayidpemakai
+                            },
+                            id_syarikat : syarikatkontrak.id_syarikat
+                        };
+    
+                    }
+    
+                  break;
+                default:
+                  // code block
+              }
+
+
  
             var listpemakai = await PemakaiModel.findAndCountAll({
                 subQuery: false,
                 distinct : true,
-                where : where,
                 attributes: { 
                              exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
                 },
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
                 order : [['id_pemakai', 'DESC']],
-                include : [
-                    {                                
-                        model : SyarikatModel,
-                        as : 'Syarikat',
-                        attributes: ['nama_syarikat','kod_syarikat']                    
-                    },
-                    
-                ] 
+                where : conditionPemakai,
+                include : includeArray
 
             });
                             
-
             return res.status(200).send({
                 'totalSize' : listpemakai.count,
                 'sizePerPage' : pageSize,
