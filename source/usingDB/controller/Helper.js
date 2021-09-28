@@ -1,6 +1,8 @@
 const KodKeduaModel = require("../models/sequelize/KodKedua");
 const KodUtamaModel = require("../models/sequelize/KodUtama");
 
+const seqlib = require("sequelize");
+
 
 const Helper = {
 
@@ -32,6 +34,7 @@ const Helper = {
    */
    filterJoin (req, data, search = false){
     const Op = seqlib.Op;
+
 
     var filterJoin = {};
     var filterArr = [];;

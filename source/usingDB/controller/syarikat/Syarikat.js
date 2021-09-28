@@ -50,6 +50,15 @@ const Syarikat = {
             const page = req.body.page || 1;
  
             var listsyarikat = await SyarikatModel.findAndCountAll({
+                where : Helper.filterJoin(req, [
+                    {
+                        model : SyarikatModel,
+                        columnsLike : [
+                            'nama_syarikat',
+                            'kod_syarikat'
+                        ]
+                    },
+                ], true),
                 subQuery: false,
                 distinct : true,
                 attributes: { 
