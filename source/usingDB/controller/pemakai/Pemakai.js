@@ -67,7 +67,18 @@ const Pemakai = {
 
 
             var customFilter = req.body.customFilter;
-            var conditionPemakai = {};
+            var conditionPemakai = [
+                Helper.filterJoin(req, [
+                    {
+                        model : PemakaiModel,
+                        columnsLike : [
+                            'kod_buku',
+                            'nama'
+                        ]
+                    }
+                ])           
+            ];
+            
 
             switch(customFilter.jenispage) {
                 case "pelanggan":
@@ -143,13 +154,18 @@ const Pemakai = {
                             where : { id_kontrak : customFilter.id_kontrak }
                         });
 
-                        conditionPemakai = {
-                            id_pemakai : {
-                                [Op.notIn] : arrayidpemakai
-                            },
-                            id_syarikat : syarikatkontrak.id_syarikat
-                        };
-    
+
+                        conditionPemakai.push(
+                            {
+                                id_pemakai : {
+                                    [Op.notIn] : arrayidpemakai
+                                },
+                                id_syarikat : syarikatkontrak.id_syarikat
+                            }
+                        );
+
+
+
                     }
     
                   break;
@@ -168,7 +184,10 @@ const Pemakai = {
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
                 order : [['id_pemakai', 'DESC']],
-                where : conditionPemakai,
+                where : {
+                    [Op.and] : conditionPemakai
+
+                },
                 include : includeArray
 
             });
