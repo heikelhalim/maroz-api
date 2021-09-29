@@ -118,15 +118,19 @@ const Authentication = {
             //Loop Permission Page
 
             var permissionLog = [];
-            for( var permission of pengguna.Role.JenisRole.Permission)
+            var roleLog = "";
+
+            if (pengguna.Role)
             {
-                permissionLog.push(permission.Page.name);
+                roleLog =pengguna.Role.JenisRole.nama;
+
+                for( var permission of pengguna.Role.JenisRole.Permission)
+                {
+                    permissionLog.push(permission.Page.name);
+                }
             }
 
-
             // console.log(pengguna.Role.id_role);
-            console.log(pengguna.Role.JenisRole.nama);
-
 
             //Check password
             var passwordIsValid = bcrypt.compareSync(
@@ -144,7 +148,7 @@ const Authentication = {
 
             var token = jwt.sign({ 
                 id: pengguna.id_pengguna,
-                role : pengguna.Role.JenisRole.nama,
+                role : roleLog,
                 permission : permissionLog
             }, process.env.SECRET, {
                 expiresIn: 86400 // 24 hours
