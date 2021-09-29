@@ -1,7 +1,7 @@
 const express = require("express");
 var router = express.Router();
 const Logo = require("../../controller/design/Logo");
-
+const Auth = require("../../middleware/Auth");
 
 const multer = require('multer');
 const path = require('path');
@@ -33,9 +33,9 @@ var upload = multer({
   
 
 
-router.post('/design/logo/create',upload.single('filepicture'),  Logo.create);
-router.post('/design/logo/list',  Logo.getList);
-router.get('/design/logo/details/:id',  Logo.getDetails);
+router.post('/design/logo/create', Auth.verifyToken,upload.single('filepicture'),  Logo.create);
+router.post('/design/logo/list',  Auth.verifyToken, Logo.getList);
+router.get('/design/logo/details/:id',  Auth.verifyToken, Logo.getDetails);
 
 
 

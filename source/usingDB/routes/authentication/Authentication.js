@@ -6,7 +6,7 @@ const AuthenticationValidator = require("../../middleware/validator/authenthicat
 const Authentication = require("../../controller/auth/Authentication");
 const Auth = require("../../middleware/Auth");
 
-router.post('/user/signup',  Authentication.signup);
+router.post('/user/signup',   Auth.verifyToken,Authentication.signup);
 
 router.post('/user/login', AuthenticationValidator.validateLogin, Authentication.login);
 

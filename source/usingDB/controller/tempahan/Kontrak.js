@@ -97,6 +97,9 @@ const Kontrak = {
             const pageSize = req.body.sizePerPage || 10;
             const page = req.body.page || 1;
 
+            //status kontrak
+            var kod_status = ["draft", "hantar", "selesai"];
+
  
             var listKontrak = await KontrakModel.findAndCountAll({
                 subQuery: false,

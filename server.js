@@ -45,12 +45,12 @@ app.use(function(req, res, next){
 });
 
 // cors part start
-var whitelist = ['https://dev.itimber.xyz','https://staging.itimber.xyz', 'http://localhost:4000', 'http://localhost:3000', 'http://192.168.56.102','https://apistaging.itimber.xyz', 'https://api.itimber.xyz', 'http://192.168.56.101', 'http://localhost:4001', 'https://staginglp.itimber.xyz', 'https://stagingmdi.itimber.xyz', 'https://devuiux.itimber.xyz', 'https://devenf.itimber.xyz', 'https://devsignet.itimber.xyz', 'https://apidemo.itimber.xyz', 'https://demostag.itimber.xyz', 'https://demoenf.itimber.xyz', 'https://stag.itimber.mtib.gov.my']
-var corsOptions = {
-  origin: whitelist
-}
-app.use(cors(corsOptions))
-app.options('*', cors(corsOptions))
+// var whitelist = ['https://dev.itimber.xyz','https://staging.itimber.xyz', 'http://localhost:4000', 'http://localhost:3000', 'http://192.168.56.102','https://apistaging.itimber.xyz', 'https://api.itimber.xyz', 'http://192.168.56.101', 'http://localhost:4001', 'https://staginglp.itimber.xyz', 'https://stagingmdi.itimber.xyz', 'https://devuiux.itimber.xyz', 'https://devenf.itimber.xyz', 'https://devsignet.itimber.xyz', 'https://apidemo.itimber.xyz', 'https://demostag.itimber.xyz', 'https://demoenf.itimber.xyz', 'https://stag.itimber.mtib.gov.my']
+// var corsOptions = {
+//   origin: whitelist
+// }
+// app.use(cors(corsOptions))
+// app.options('*', cors(corsOptions))
 // cors part end
 
 app.set('trust proxy', true);
@@ -58,8 +58,8 @@ var corsOptions = {
   origin: "http://localhost:3000"
 };
  
-app.use(cors(corsOptions));
-
+// app.use(cors(corsOptions));
+app.use(cors());
  
 // simple route
 app.get("/", (req, res) => {
