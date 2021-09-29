@@ -1,12 +1,11 @@
 module.exports = (sequelize, type) => {
-    return sequelize.define('userRole', {
-        id_user_role : {
+    return sequelize.define('role', {
+        id_role : {
             type: type.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        id_pengguna : type.INTEGER,
-        id_role : type.INTEGER,
+        nama : type.STRING,
         created_at : type.DATE,
         created_by : type.INTEGER,
         updated_at : type.DATE,
@@ -14,7 +13,7 @@ module.exports = (sequelize, type) => {
         deleted_at : type.DATE,
         deleted_by : type.INTEGER
     }, {
-        tableName: 'sys_user_role',
+        tableName: 'sys_role',
         schema: process.env.SCHEMA,
         //timestamps: false,
         paranoid: true,

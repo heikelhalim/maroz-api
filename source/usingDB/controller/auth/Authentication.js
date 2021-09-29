@@ -1,4 +1,11 @@
 const PenggunaModel = require("../../models/sequelize/User");
+const UserRoleModel = require("../../models/sequelize/UserRole");
+const RoleModel = require("../../models/sequelize/Role");
+const RolePermissionModel = require("../../models/sequelize/RolePermission");
+const PageModel = require("../../models/sequelize/Page");
+
+
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -70,12 +77,56 @@ const Authentication = {
 
             
             const pengguna = await PenggunaModel.scope(['checkActive']).findOne({
-                where : { nama_pengguna : req.body.nama_pengguna }
+                where : { nama_pengguna : req.body.nama_pengguna },
+                include : [
+                    {                                
+                        model : UserRoleModel,
+                        as : 'Role',
+                        attributes: ['id_role'],
+                        include : [
+                            {
+                                model : RoleModel,
+                                as : 'JenisRole',
+                                attributes: ['nama'],
+                                include : [
+                                    {
+                                        model : RolePermissionModel,
+                                        as : 'Permission',
+                                        attributes: ['id_role_permission'],
+                                        include : [
+                                            {
+                                                model : PageModel,
+                                                as : 'Page',
+                                                attributes: ['name'],
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]                    
+                    },
+                ]
+
             });
+
 
             if (!pengguna) {
                 return res.status(400).send({'message': 'Tiada pengguna dijumpai'});
             }
+
+
+            //Loop Permission Page
+
+            var permissionLog = [];
+            for( var permission of pengguna.Role.JenisRole.Permission)
+            {
+                permissionLog.push(permission.Page.name);
+            }
+
+
+            // console.log(pengguna.Role.id_role);
+            console.log(pengguna.Role.JenisRole.nama);
+
 
             //Check password
             var passwordIsValid = bcrypt.compareSync(
@@ -91,7 +142,11 @@ const Authentication = {
               }
 
 
-            var token = jwt.sign({ id: pengguna.id_pengguna }, process.env.SECRET, {
+            var token = jwt.sign({ 
+                id: pengguna.id_pengguna,
+                role : pengguna.Role.JenisRole.nama,
+                permission : permissionLog
+            }, process.env.SECRET, {
                 expiresIn: 86400 // 24 hours
             });
         
