@@ -1,7 +1,9 @@
 const KontrakModel = require("../../models/sequelize/Kontrak");
+const KontrakTukangJahitModel = require("../../models/sequelize/KontrakTukangJahit");
 const TempahanPemakaiModel = require("../../models/sequelize/TempahanPemakai");
 const SyarikatModel = require("../../models/sequelize/Syarikat");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
+const PenggunaModel = require("../../models/sequelize/User")
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const moment = require("moment");
@@ -50,12 +52,14 @@ const Kontrak = {
                 "tarikh_sulam_butang" : req.body.tarikh_sulam_butang,
                 "is_partial_delivery" : req.body.is_partial_delivery,
                 "bilangan_hari" : req.body.bilangan_hari,
+                "id_status_proses_kontrak" : await Helper.getIdKodKedua("DRFT", 'ref_status_proses_kontrak')
             };
 
 
             var kontrak;
             if (req.body.id_kontrak)
             {
+                //Update
 
                 var existKontrak = await KontrakModel.findByPk(req.body.id_kontrak, {
                     attributes: { 
@@ -72,7 +76,38 @@ const Kontrak = {
                 
                 kontrak = await existKontrak.update(data, {
                     transaction : transaction
-                });                
+                }); 
+                
+                //delete tukangjahit
+                const tj = await KontrakTukangJahitModel.destroy({
+                    where : {"id_kontrak" : existKontrak.id_kontrak},
+                    force : true,
+                    transaction : transaction
+                });
+
+                //create new list tukang jahit
+                if (req.body.tukang_jahit)
+                {
+                    if (req.body.tukang_jahit.length>0)
+                    {
+                        var arr_tj = [];
+                        for (var tkgjahit of req.body.tukang_jahit)
+                        {
+                            var dataTJ = {
+                                "id_kontrak" : existKontrak.id_kontrak,
+                                "id_pengguna" : tkgjahit.id_pengguna
+                            }
+
+                            arr_tj.push(dataTJ);
+                        }
+
+                        const eksportRawatan = await KontrakTukangJahitModel.bulkCreate(arr_tj, {
+                            transaction : transaction
+                        });  
+                    }                    
+                }
+                
+
 
             }
             else
@@ -81,7 +116,31 @@ const Kontrak = {
                 kontrak = await KontrakModel.create(data, {
                     transaction : transaction
                 });    
+
+                //create new list tukang jahit
+                if (req.body.tukang_jahit)
+                {
+                    if (req.body.tukang_jahit.length>0)
+                    {
+                        var arr_tj = [];
+                        for (var tkgjahit of req.body.tukang_jahit)
+                        {
+                            var dataTJ = {
+                                "id_kontrak" : kontrak.id_kontrak,
+                                "id_pengguna" : tkgjahit.id_pengguna
+                            }
+
+                            arr_tj.push(dataTJ);
+                        }
+
+                        const eksportRawatan = await KontrakTukangJahitModel.bulkCreate(arr_tj, {
+                            transaction : transaction
+                        });  
+                    }                    
+                }
+
             }
+
 
             await transaction.commit();
             return res.status(200).send(kontrak);
@@ -99,6 +158,73 @@ const Kontrak = {
 
             //status kontrak
             var kod_status = ["draft", "hantar", "selesai"];
+            
+            var kod_kedua = {
+                draft : "DRFT",
+                selesai : "SLS",
+                hantar : "HTR"
+            };
+
+
+            var kod_status_kod = "";
+            var arr_status_cnt = [];
+
+                //utk view penyemak
+                for (var item of kod_status){  
+                    var status_count = {};
+                    switch(item) {
+                        case "hantar":
+                            kod_status_kod = kod_kedua.hantar; //hantar
+                            break;
+                        case "selesai":             
+                            kod_status_kod = kod_kedua.selesai; // selesai
+                            break;
+                        case "draft":
+                            kod_status_kod = kod_kedua.draft; // draft
+                            break;
+                        default:
+                            kod_status_kod = kod_kedua.draft; // Baru dan Auto Lulus - Pending Penyemak
+                    }
+    
+                    const showStatus = await KontrakModel.count({
+                        include: [
+                            {
+                                model : KodKeduaModel,
+                                as : 'StatusProsesKontrak',
+                                required : true,
+                                where : {
+                                    kod_ref : kod_status_kod
+                                },
+                            },
+                        ]
+                    });
+                    status_count["status"] = item;
+                    status_count["cnt"] = showStatus;
+                    arr_status_cnt.push(status_count);
+                }  
+
+                var kod;
+                var kod_status;      
+                
+                switch(req.body.status_name) {
+                    case "hantar":
+                        kod_status = kod_kedua.hantar; //hantar
+                        break;
+                    case "selesai":             
+                        kod_status = kod_kedua.selesai; // selesai
+                        break;
+                    case "draft":
+                        kod_status = kod_kedua.draft; // draft
+                        break;
+                    default:
+                        kod_status = kod_kedua.draft; // Baru dan Auto Lulus - Pending Penyemak
+                }
+                
+                condition = {
+                    'kod_ref' : kod_status ,
+                    'is_aktif' : true
+                };
+
 
  
             var listKontrak = await KontrakModel.findAndCountAll({
@@ -110,7 +236,23 @@ const Kontrak = {
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
                 order : [['id_kontrak', 'DESC']],
+                where : Helper.filterJoin(req, [
+                    {
+                        model : KontrakModel,
+                        columnsLike : [
+                            'kod_kontrak',
+                            'tajuk_kerja'
+                        ]
+                    },
+                ], true),                
                 include : [
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'StatusProsesKontrak',
+                        required : true,
+                        where : condition,
+                        attributes: ['kod_ref','keterangan']                   
+                    },
                     {                                
                         model : SyarikatModel,
                         as : 'Syarikat',
@@ -131,6 +273,18 @@ const Kontrak = {
                         as : 'JenisKerja',
                         attributes: ['kod_ref','keterangan']                   
                     },
+                    {                                
+                        model : KontrakTukangJahitModel,
+                        as : 'ListTukangJahit',
+                        attributes: ['id_kontrak'],
+                        include : [
+                            {                                
+                                model : PenggunaModel,
+                                as : 'TukangJahit',
+                                attributes: ['nama']                   
+                            },
+                        ]                   
+                    },                    
 
                 ] 
 
@@ -138,6 +292,7 @@ const Kontrak = {
                             
 
             return res.status(200).send({
+                'status_list' : arr_status_cnt,
                 'totalSize' : listKontrak.count,
                 'sizePerPage' : pageSize,
                 'page' : page,

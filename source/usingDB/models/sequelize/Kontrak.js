@@ -5,6 +5,9 @@ const sequelize = require('../../../../sequelize');
 const KontrakModel = require('../../models/define/Kontrak');
 const Kontrak = KontrakModel(sequelize.sequelizeConn, seqlib);
 
+const KontrakTukangJahitModel = require('../../models/define/KontrakTukangJahit');
+const KontrakTukangJahit = KontrakTukangJahitModel(sequelize.sequelizeConn, seqlib);
+
 const SyarikatModel = require('../../models/define/Syarikat');
 const Syarikat = SyarikatModel(sequelize.sequelizeConn, seqlib);
 
@@ -20,6 +23,8 @@ Kontrak.belongsTo(Syarikat, {foreignKey: 'id_syarikat', targetKey: 'id_syarikat'
 Kontrak.belongsTo(KodKedua, {foreignKey: 'id_jenis_kontrak', targetKey: 'id_kod_kedua', as: 'JenisKontrak'});
 Kontrak.belongsTo(KodKedua, {foreignKey: 'id_jenis_kerja', targetKey: 'id_kod_kedua', as: 'JenisKerja'});
 Kontrak.belongsTo(DesignPakaian, {foreignKey: 'id_dsgn_pakaian', targetKey: 'id_dsgn_pakaian', as: 'RujDsgnPakaian'});
+Kontrak.belongsTo(KodKedua, {foreignKey: 'id_status_proses_kontrak', targetKey: 'id_kod_kedua', as: 'StatusProsesKontrak'});
+Kontrak.hasMany(KontrakTukangJahit, {foreignKey: 'id_kontrak', targetKey: 'id_kontrak', as: 'ListTukangJahit'});
 
 
 
