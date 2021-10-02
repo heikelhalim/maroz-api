@@ -11,6 +11,9 @@ router.delete('/kontrak/deletekontrak/:id', Auth.verifyToken, Kontrak.deleteKont
 
 
 router.post('/kontrak/assignpemakai/',Auth.verifyToken,  Kontrak.assignPemakaiKontrak);
+router.post('/kontrak/tempahan/create',Auth.verifyToken,  Kontrak.createTempahan);
+
+
 router.delete('/kontrak/deletepemakai/', Auth.verifyToken, Kontrak.deletePemakaiKontrak);
 
 

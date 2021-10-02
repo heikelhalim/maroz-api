@@ -1,6 +1,7 @@
 const KontrakModel = require("../../models/sequelize/Kontrak");
 const KontrakTukangJahitModel = require("../../models/sequelize/KontrakTukangJahit");
 const TempahanPemakaiModel = require("../../models/sequelize/TempahanPemakai");
+const TempahanUkuranModel = require("../../models/sequelize/TempahanUkuran");
 const SyarikatModel = require("../../models/sequelize/Syarikat");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const PenggunaModel = require("../../models/sequelize/User")
@@ -242,8 +243,9 @@ const Kontrak = {
                         columnsLike : [
                             'kod_kontrak',
                             'tajuk_kerja'
-                        ]
-                    },
+                        ],
+                        columnsEqual : ['id_syarikat']
+                    } 
                 ], true),                
                 include : [
                     {                                
@@ -354,6 +356,8 @@ const Kontrak = {
 
             const transaction = await KontrakModel.sequelize.transaction();
 
+            //Delete Tukang Jahit
+
             //Delete Ukuran Pemakai
 
             //Delete Tempahan Pemakai
@@ -434,6 +438,101 @@ const Kontrak = {
         }
     },
 
+
+    async createTempahan(req, res) {
+        try {
+
+            const transaction = await TempahanUkuranModel.sequelize.transaction();
+
+
+            var body = req.body;
+
+            var data = { 
+                // "id_kontrak" : body.id_kontrak,
+                "id_pemakai_tempahan" : body.id_pemakai_tempahan,
+                "id_dsgn_pakaian" : body.id_dsgn_pakaian,
+                "id_jenis_pakaian" : body.id_jenis_pakaian,
+                "bilangan" : body.bilangan,
+                "b_tengkuk_pinggang" : body.b_tengkuk_pinggang,
+                "b_tengkuk_pinggang_pecahan" : body.b_tengkuk_pinggang_pecahan,
+                "b_labuh" : body.b_labuh,
+                "b_labuh_pecahan" : body.b_labuh_pecahan,
+                "b_bahu" : body.b_bahu,
+                "b_bahu_pecahan" : body.b_bahu_pecahan,
+                "b_labuh_lengan" : body.b_labuh_lengan,
+                "b_labuh_lengan_pecahan" : body.b_labuh_lengan_pecahan,
+                "b_dada" : body.b_dada,
+                "b_dada_pecahan" : body.b_dada_pecahan,
+                "b_pinggang" : body.b_pinggang,
+                "b_pinggang_pecahan" : body.b_pinggang_pecahan,
+                "b_punggung" : body.b_punggung,
+                "b_punggung_pecahan" :body.b_punggung_pecahan,
+                "b_leher_baju" : body.b_leher_baju,
+                "b_leher_baju_pecahan" : body.b_leher_baju_pecahan,
+                "sl_labuh_seluar" : body.sl_labuh_seluar,
+                "sl_labuh_seluar_pecahan" : body.sl_labuh_seluar_pecahan,
+                "sl_pinggang" : body.sl_pinggang,
+                "sl_pinggang_pecahan" : body.sl_pinggang_pecahan,
+                "sl_punggung" : body.sl_punggung,
+                "sl_punggung_pecahan" : body.sl_punggung_pecahan,
+                "sl_peha" : body.sl_peha,
+                "sl_peha_pecahan" : body.sl_peha_pecahan,
+                "sl_lutut" : body.sl_lutut,
+                "sl_lutut_pecahan" : body.sl_lutut_pecahan,
+                "sl_buka_kaki" : body.sl_buka_kaki,
+                "sl_buka_kaki_pecahan" : body.sl_buka_kaki_pecahan,
+                "sl_cawat" : body.sl_cawat,
+                "sl_cawat_pecahan" : body.sl_cawat_pecahan,
+                "sz_kot_jaket" : body.sz_kot_jaket,
+                "sz_baju" : body.sz_baju,
+                "sz_blok_id" : body.sz_blok_id,
+                "sz_seluar" : body.sz_seluar,
+                "nota" : body.nota
+            };
+
+
+            var ukuran;
+            if (req.body.id_tempahan_ukuran)
+            {
+                //Update
+
+                var existUkuran = await TempahanUkuranModel.findByPk(req.body.id_tempahan_ukuran, {
+                    attributes: { 
+                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                    });
+
+
+                if(!existUkuran)
+                {
+                    return res.status(404).send({'message': 'Detail ukuran tidak dijumpai'});
+                }
+
+                
+                ukuran = await existUkuran.update(data, {
+                    transaction : transaction
+                }); 
+                
+            }
+            else
+            {
+                //Create
+                ukuran = await TempahanUkuranModel.create(data, {
+                    transaction : transaction
+                });    
+
+
+            }
+
+
+            await transaction.commit();
+            return res.status(200).send(ukuran);
+        } catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+    
     async deletePemakaiKontrak(req, res) {
         try {
 
@@ -443,10 +542,34 @@ const Kontrak = {
             for (var pemakai of req.body.pemakai)
             {
 
-                const delTempahan = await TempahanPemakaiModel.destroy({
+                var maklumatPemakaiKontrak = await TempahanPemakaiModel.findOne({
                     where : {
                         "id_pemakai" : pemakai.id_pemakai,
                         "id_kontrak" : req.body.id_kontrak
+                    },
+                    attributes: { 
+                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                    });
+
+
+
+                //Delete All Tempahan Ukuran
+                
+                const delTempahan = await TempahanUkuranModel.destroy({
+                    where : {
+                        "id_pemakai_tempahan" : maklumatPemakaiKontrak.id_pemakai_tempahan
+                    },
+                    force : true,
+                    transaction : transaction
+                });
+
+
+                //Delete Pemakai assigne to kontrak
+
+                const delPemakai = await TempahanPemakaiModel.destroy({
+                    where : {
+                        "id_pemakai_tempahan" : maklumatPemakaiKontrak.id_pemakai_tempahan
                     },
                     force : true,
                     transaction : transaction
@@ -464,6 +587,42 @@ const Kontrak = {
         }
     },
 
+    async hantarKontrak(req,res){
+        try {
+            
+            // change status kontrak to hantar
+
+            var data = {
+                "id_status_proses_kontrak" : await Helper.getIdKodKedua("HTR", 'ref_status_proses_kontrak')
+            }
+
+            var existKontrak = await KontrakModel.findByPk(req.body.id_kontrak, {
+                attributes: { 
+                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                    },
+                });
+
+                if(!existKontrak)
+                {
+                    return res.status(404).send({'message': 'Detail kontrak tidak dijumpai'});
+                }
+
+                
+                kontrak = await existKontrak.update(data, {
+                    transaction : transaction
+                });                 
+
+            // insert tempahan to production with barcode generate
+
+
+
+            // 
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    }
 
 }
 

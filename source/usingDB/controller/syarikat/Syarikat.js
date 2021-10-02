@@ -1,4 +1,5 @@
 const SyarikatModel = require("../../models/sequelize/Syarikat");
+const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const { moment } = require("moment");
@@ -94,7 +95,19 @@ const Syarikat = {
             var detailSyarikat = await SyarikatModel.findByPk(req.params.id,{
                 attributes: { 
                              exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                }
+                },
+                include : [
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'Negeri',
+                        attributes: ['kod_ref','keterangan']                    
+                    },
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'JenisPerniagaan',
+                        attributes: ['kod_ref','keterangan']                   
+                    },
+                ]
             });
 
             if (!detailSyarikat){

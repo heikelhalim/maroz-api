@@ -119,7 +119,7 @@ const Pemakai = {
                             as : 'TempahanPemakai',
                             where : { id_kontrak : customFilter.id_kontrak },
                             required : isRequired,
-                            attributes: ['jenis_tempahan'],
+                            attributes: ['id_pemakai_tempahan','jenis_tempahan'],
                             include : [
                                 {
                                     model : KontrakModel,
@@ -138,7 +138,7 @@ const Pemakai = {
                         //List pemakai belum dipilih utk kontrak    
 
                         var listTempahanPemakai = await TempahanPemakaiModel.findAll({
-                            attributes: ["id_pemakai","id_kontrak"],
+                            attributes: ["id_pemakai_tempahan","id_pemakai","id_kontrak"],
                             where : { id_kontrak : customFilter.id_kontrak }
                         });
 
