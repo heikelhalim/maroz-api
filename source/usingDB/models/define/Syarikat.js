@@ -14,7 +14,7 @@ module.exports = (sequelize, type) => {
         daerah : type.STRING,
         id_negeri : type.STRING,
         id_jenis_perniagaan : type.INTEGER,
-        laman_web : type.STRING,
+        emel : type.STRING,
         no_telefon : type.STRING,
         no_faks : type.STRING,
         is_aktif : type.BOOLEAN,
