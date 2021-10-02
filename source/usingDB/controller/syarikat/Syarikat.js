@@ -37,7 +37,7 @@ const Syarikat = {
                 "no_telefon" : req.body.no_telefon,
                 "no_faks" : req.body.no_faks,
                 "id_jenis_perniagaan" : req.body.id_jenis_perniagaan ,
-                "is_aktif": true 
+                "is_aktif": req.body.is_aktif
             };
 
 
