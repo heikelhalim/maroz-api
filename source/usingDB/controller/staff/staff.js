@@ -33,10 +33,12 @@ const Pemakai = {
                 "jantina" : req.body.jantina ,
                 "nama_tag" : req.body.nama_tag ,
                 "no_telefon" : req.body.no_telefon ,
-                "email" : req.body.email ,
+                "email" : req.body.email,
+                "jawatan" : req.body.jawatan,
                 "id_syarikat" : req.body.id_syarikat 
             };
 
+            console.log(data);
 
             const pemakai = await PemakaiModel.create(data, {
                 transaction : transaction

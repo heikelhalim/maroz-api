@@ -37,13 +37,42 @@ const Pemakai = {
                 "nama_tag" : req.body.nama_tag ,
                 "no_telefon" : req.body.no_telefon ,
                 "email" : req.body.email ,
-                "id_syarikat" : req.body.id_syarikat 
+                "id_syarikat" : req.body.id_syarikat,
+                "jawatan" :  req.body.jawatan 
             };
 
+            var pemakai;
+            if (req.body.id_pemakai)
+            {
+                //Update
 
-            const pemakai = await PemakaiModel.create(data, {
-                transaction : transaction
-            });    
+                var existPemakai = await PemakaiModel.findByPk(req.body.id_pemakai, {
+                    attributes: { 
+                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                    });
+
+
+                if(!existPemakai)
+                {
+                    return res.status(404).send({'message': 'Detail pemakai tidak dijumpai'});
+                }
+
+                
+                pemakai = await existPemakai.update(data, {
+                    transaction : transaction
+                }); 
+
+
+            }
+            else
+            {
+                //Create
+                pemakai = await PemakaiModel.create(data, {
+                    transaction : transaction
+                });     
+            }
+          
 
             await transaction.commit();
             return res.status(200).send(pemakai);
