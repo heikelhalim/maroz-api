@@ -55,7 +55,7 @@ const Logo = {
 
                 //Image
                 "file_name": req.file.filename,
-                "file_path": req.file.destination,
+                "file_path": req.file.destination+"/",
                 "file_mimetype": req.file.mimetype,
                 "file_original_name": req.file.originalname,
             };
