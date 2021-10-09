@@ -30,7 +30,9 @@ app.use(express.json());
 // app.use(airbrakeExpress.makeMiddleware(airbrake));
 
 // Serving static files from "public" folder
-app.use(express.static('./public'));
+// app.use(express.static('./public'));
+app.use('/images', express.static('images')); 
+app.use('/public', express.static('public')); 
 
 // set timeout
 app.use(function(req, res, next){
