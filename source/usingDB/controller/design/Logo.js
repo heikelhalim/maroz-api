@@ -36,7 +36,7 @@ const Logo = {
 
 
             const data = { 
-                "kod_logo" : req.body.kod_logo,
+                "kod_logo" : await Helper.genRunningNo("kod_logo"),
                 "keterangan" : req.body.keterangan,
                 "id_jenis_logo" :  req.body.id_jenis_logo,
                 "id_jenis_sulaman" : req.body.id_jenis_sulaman ,

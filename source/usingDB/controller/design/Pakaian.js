@@ -31,7 +31,7 @@ const Pakaian = {
  
             //Data pakaian 
             const data = { 
-                "kod_design" : req.body.kod_design,
+                "kod_design" : await Helper.genRunningNo("kod_pakaian"),
                 "tarikh_design" : req.body.tarikh_design,
                 "keterangan" : req.body.keterangan,
                 "id_jenis_pakaian" : req.body.id_jenis_pakaian,

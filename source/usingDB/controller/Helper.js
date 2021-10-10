@@ -6,6 +6,49 @@ const seqlib = require("sequelize");
 
 const Helper = {
 
+
+  genRunningNo(seq_name) {
+    var noPerm = ""
+    switch(seq_name){
+      case 'kod_logo': 
+        noPerm = Helper.getSeqNum('seq_dsgn_kod_logo', 'DGLG');
+        break;
+      case 'kod_pakaian': 
+        noPerm = Helper.getSeqNum('seq_dsgn_kod_pakaian', 'DGPK');
+        break;
+
+    }
+    return noPerm;
+  },
+
+
+  async getSeqNum(sequence_name, trxcode){
+    try {
+      var tmp_next_num = await KodKeduaModel.sequelize.query("SELECT nextval ('"+process.env.SCHEMA+"."+sequence_name+"')", {
+        type: seqlib.QueryTypes.SELECT
+      });
+
+
+      console.log("TEST"); 
+      console.log("next_num: "+tmp_next_num[0].nextval);
+      var next_num = tmp_next_num[0].nextval
+      
+      var n = next_num.toString().length
+      var digitloop;
+      !trxcode ? digitloop = 5 : digitloop = 6
+      for (var i=0; i<digitloop-n; i++) {
+        next_num = "0"+next_num
+      }
+      const noPermLesen = trxcode+next_num;
+      // console.log(noPermLesen);
+
+      return noPermLesen;
+    }
+    catch(err) {
+      return err;
+    }
+  },
+
   async getIdKodKedua(cur_kod, ref_status){
     const idStatus = await KodKeduaModel.scope(['checkActive']).findOne({
       where : {kod_ref: cur_kod},
