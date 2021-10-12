@@ -25,7 +25,8 @@ module.exports = (sequelize, type) => {
         is_butang : type.BOOLEAN,
         is_sulam : type.BOOLEAN,
         is_qc : type.BOOLEAN,
-        is_aktif : type.BOOLEAN
+        is_aktif : type.BOOLEAN,
+        nota : type.STRING
         }, {
         tableName: 'dsgn_pakaian',
         schema: process.env.SCHEMA,

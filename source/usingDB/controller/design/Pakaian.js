@@ -7,7 +7,7 @@ const SyarikatModel = require("../../models/sequelize/Syarikat");
 
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
-const { moment } = require("moment");
+const moment = require("moment");
 
 const fs = require('fs-extra')
 
@@ -32,7 +32,7 @@ const Pakaian = {
             //Data pakaian 
             const data = { 
                 "kod_design" : await Helper.genRunningNo("kod_pakaian"),
-                "tarikh_design" : req.body.tarikh_design,
+                "tarikh_design" : moment(new Date()).format('YYYY/MM/DD'),
                 "keterangan" : req.body.keterangan,
                 "id_jenis_pakaian" : req.body.id_jenis_pakaian,
                 "id_jawatan" : req.body.id_jawatan,
@@ -42,6 +42,7 @@ const Pakaian = {
                 "is_sulam" : req.body.is_sulam,
                 "is_qc" : req.body.is_qc,
                 "is_aktif" : req.body.is_aktif,
+                "nota" : req.body.nota,
 
                 //Image
                 "file_name": req.file.filename,
@@ -56,22 +57,24 @@ const Pakaian = {
             //Data Jenis Kain
             var kain = req.body.kain;
 
-            console.log(kain.length);
-
             //if kain exist
-            if (kain.length>0)
+            if (kain)
             {
-                for (var item of kain){  
-                    const objItem = JSON.parse(item);
-
-
-                    console.log(objItem.id_jenis_kain);
-                    console.log(objItem.warna);
-
-                }    
-
+                if (kain.length>0)
+                {
+                    for (var item of kain){  
+                        const objItem = JSON.parse(item);
+    
+    
+                        console.log(objItem.id_jenis_kain);
+                        console.log(objItem.warna);
+    
+                    }    
+    
+                }
+    
+    
             }
-
         
 
             //Data Butang/Zip
@@ -93,7 +96,7 @@ const Pakaian = {
                         },
                     });
 
-
+ 
                 if(!existPakaian)
                 {
                     return res.status(404).send({'message': 'Detail logo tidak dijumpai'});
@@ -125,7 +128,7 @@ const Pakaian = {
                 }
 
 
-
+ 
 
 
                 
