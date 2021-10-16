@@ -10,8 +10,14 @@ router.get('/kontrak/view/:id', Auth.verifyToken, Kontrak.getDetails);
 router.delete('/kontrak/deletekontrak/:id', Auth.verifyToken, Kontrak.deleteKontrak);
 
 
-router.post('/kontrak/assignpemakai/',Auth.verifyToken,  Kontrak.assignPemakaiKontrak);
-router.post('/kontrak/tempahan/create',Auth.verifyToken,  Kontrak.createTempahan);
+// router.post('/kontrak/assignpemakai/',Auth.verifyToken,  Kontrak.assignPemakaiKontrak);
+
+router.post('/kontrak/tempahan/createpemakai',Auth.verifyToken,  Kontrak.createPemakai);
+router.get('/kontrak/tempahan/detailspemakai/:id',Auth.verifyToken,  Kontrak.getDetailsPemakai);
+router.post('/kontrak/tempahan/listpemakai',Auth.verifyToken,  Kontrak.getListPemakaiKontrak);
+
+router.post('/kontrak/tempahan/createtempahan',Auth.verifyToken,  Kontrak.createTempahan);
+router.post('/kontrak/tempahan/createtempahan',Auth.verifyToken,  Kontrak.createTempahan);
 
 
 router.delete('/kontrak/deletepemakai/', Auth.verifyToken, Kontrak.deletePemakaiKontrak);

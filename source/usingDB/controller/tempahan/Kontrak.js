@@ -439,6 +439,237 @@ const Kontrak = {
     },
 
 
+    async createPemakai(req, res) {
+        try {
+
+            const transaction = await TempahanPemakaiModel.sequelize.transaction();
+
+            var body = req.body;
+
+            console.log(body);
+            var data = { 
+                "nama" : body.nama,
+                "no_kpstaff" : body.no_kpstaff,
+                "kod_buku" : body.kod_buku,
+                "jantina" : body.jantina,
+                "nama_tag" : body.nama_tag,
+                "no_telefon" : body.no_telefon,
+                "id_tukang_ukur" : body.id_tukang_ukur,
+                "tarikh_ukur" :  moment(body.tarikh_ukur).format('YYYY/MM/DD'),
+                "jawatan" : body.jawatan,
+                "id_kontrak" : body.id_kontrak,
+                "jenis_tempahan" : "kontrak",
+                "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai'),   //Baru
+            };
+
+ 
+            var pemakai;
+            if (req.body.id_pemakai_tempahan)
+            {
+                //Update
+
+                var existPemakai = await TempahanPemakaiModel.findByPk(req.body.id_pemakai_tempahan, {
+                    attributes: { 
+                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                    });
+
+
+                if(!existPemakai)
+                {
+                    return res.status(404).send({'message': 'Detail pemakai tidak dijumpai'});
+                }
+
+                
+                pemakai = await existPemakai.update(data, {
+                    transaction : transaction
+                }); 
+                
+            }
+            else
+            {
+                //Create
+                pemakai = await TempahanPemakaiModel.create(data, {
+                    transaction : transaction
+                });    
+
+
+            }
+
+
+            await transaction.commit();
+            return res.status(200).send(pemakai);
+        } catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+    async getDetailsPemakai(req, res) {
+        try {
+
+            var detailPemakai = await TempahanPemakaiModel.findByPk(req.params.id,{
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },                          
+                include: [
+                    {
+                        model : PenggunaModel,
+                        as : 'TukangUkur',
+                        attributes : ["nama"]
+                    },
+                ]
+            });
+
+            if (!detailPemakai){
+                return res.status(404).send({'message': 'Details pemakai tidak dijumpai'});
+            }
+
+            return res.status(200).send(detailPemakai);
+        } catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+    async getListPemakaiKontrak(req, res) {
+        try {
+
+            const pageSize = req.body.sizePerPage || 10;
+            const page = req.body.page || 1;
+
+            //status kontrak
+            var kod_status = ["baru", "proses", "selesai"];
+            
+            var kod_kedua = {
+                baru : "BR",
+                selesai : "SLS",
+                proses : "PRS"
+            };
+
+
+            var kod_status_kod = "";
+            var arr_status_cnt = [];
+
+                //utk view penyemak
+                for (var item of kod_status){  
+                    var status_count = {};
+                    switch(item) {
+                        case "proses":
+                            kod_status_kod = kod_kedua.proses; //proses
+                            break;
+                        case "selesai":             
+                            kod_status_kod = kod_kedua.selesai; // selesai
+                            break;
+                        case "baru":
+                            kod_status_kod = kod_kedua.baru; // baru
+                            break;
+                        default:
+                            kod_status_kod = kod_kedua.baru; // Baru dan Auto Lulus - Pending Penyemak
+                    }
+    
+                    const showStatus = await TempahanPemakaiModel.count({
+                        include: [
+                            {
+                                model : KodKeduaModel,
+                                as : 'StatusPemakai',
+                                required : true,
+                                where : {
+                                    kod_ref : kod_status_kod
+                                },
+                            },
+                        ]
+                    });
+                    status_count["status"] = item;
+                    status_count["cnt"] = showStatus;
+                    arr_status_cnt.push(status_count);
+                }  
+
+
+                var condition = {};
+
+                if (req.body.status_name)
+                {                
+                    var kod_status;      
+                
+                    switch(req.body.status_name) {
+                        case "proses":
+                            kod_status = kod_kedua.proses; //hantar
+                            break;
+                        case "selesai":             
+                            kod_status = kod_kedua.selesai; // selesai
+                            break;
+                        case "baru":
+                            kod_status = kod_kedua.baru; // draft
+                            break;
+                        default:
+                            kod_status = kod_kedua.baru; // Baru dan Auto Lulus - Pending Penyemak
+                    }
+                    
+                    condition = {
+                        'kod_ref' : kod_status ,
+                        'is_aktif' : true
+                    };
+
+                }
+
+
+
+
+ 
+            var listPemakai = await TempahanPemakaiModel.findAndCountAll({
+                subQuery: false,
+                distinct : true,
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                limit : pageSize, 
+                offset : Helper.offset(page, pageSize),    
+                order : [['id_kontrak', 'DESC']],
+                where : Helper.filterJoin(req, [
+                    {
+                        model : KontrakModel,
+                        columnsLike : [
+                            'kod_kontrak',
+                            'tajuk_kerja'
+                        ],
+                        columnsEqual : ['id_syarikat']
+                    } 
+                ], true),                
+                include : [
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'StatusPemakai',
+                        required : true,
+                        where : condition,
+                        attributes: ['kod_ref','keterangan']                   
+                    },
+                    {
+                        model : PenggunaModel,
+                        as : 'TukangUkur',
+                        attributes : ["nama"]
+                    },                                                       
+                ] 
+
+            });
+                            
+
+            return res.status(200).send({
+                'status_list' : arr_status_cnt,
+                'totalSize' : listPemakai.count,
+                'sizePerPage' : pageSize,
+                'page' : page,
+                'data' : listPemakai.rows,
+            });
+
+
+            }catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },    
+
+
     async createTempahan(req, res) {
         try {
 

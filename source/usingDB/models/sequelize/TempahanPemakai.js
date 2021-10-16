@@ -8,18 +8,17 @@ const TempahanPemakai = TempahanPemakaiModel(sequelize.sequelizeConn, seqlib);
 const KontrakModel = require('../../models/define/Kontrak');
 const Kontrak = KontrakModel(sequelize.sequelizeConn, seqlib);
 
-
-const PemakaiModel = require('../../models/define/Pemakai');
-const Pemakai = PemakaiModel(sequelize.sequelizeConn, seqlib);
-
 const KodKeduaModel = require('../../models/define/KodKedua');
 const KodKedua = KodKeduaModel(sequelize.sequelizeConn, seqlib);
+
+const PenggunaModel = require('../../models/define/User');
+const Pengguna = PenggunaModel(sequelize.sequelizeConn, seqlib);
 
 
  
 TempahanPemakai.belongsTo(Kontrak, {foreignKey: 'id_kontrak', targetKey: 'id_kontrak', as: 'Kontrak'});
-TempahanPemakai.belongsTo(Pemakai, {foreignKey: 'id_pemakai', targetKey: 'id_pemakai', as: 'Pemakai'});
-TempahanPemakai.belongsTo(KodKedua, {foreignKey: 'id_status', targetKey: 'id_kod_kedua', as: 'Status'});
+TempahanPemakai.belongsTo(KodKedua, {foreignKey: 'id_status', targetKey: 'id_kod_kedua', as: 'StatusPemakai'});
+TempahanPemakai.belongsTo(Pengguna, {foreignKey: 'id_tukang_ukur', targetKey: 'id_pengguna', as: 'TukangUkur'});
 
 
 
