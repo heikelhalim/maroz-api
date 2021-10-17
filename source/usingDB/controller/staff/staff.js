@@ -133,35 +133,7 @@ const Staff = {
             console.log(error);
             return res.status(400).send(error);
         }
-    },
-
-    async getDetails(req, res) {
-        try {
-
-            var detailsPemakai = await PemakaiModel.findByPk(req.params.id,{
-                attributes: { 
-                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                },
-                include : [
-                    {                                
-                        model : SyarikatModel,
-                        as : 'Syarikat',
-                        attributes: ['nama_syarikat','kod_syarikat']                    
-                    },
-                    
-                ] 
-            });
-
-            if (!detailsPemakai){
-                return res.status(404).send({'message': 'Details Pemakai tidak dijumpai'});
-            }
-
-            return res.status(200).send(detailsPemakai);
-        } catch(error) {
-            console.log(error);
-            return res.status(400).send(error);
-        }
-    },
+    }
 
 }
 
