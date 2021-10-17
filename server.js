@@ -91,7 +91,7 @@ app.use(require('./source/usingDB/routes/pemakai/Pemakai'));
 app.use(require('./source/usingDB/routes/tempahan/Kontrak')); 
 
 //Staff
-app.use(require('./source/usingDB/routes/staff/Staff')); 
+// app.use(require('./source/usingDB/routes/staff/Staff')); 
 
 
 
