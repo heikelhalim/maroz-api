@@ -13,6 +13,7 @@ module.exports = (sequelize, type) => {
         nama : type.STRING,
         email : type.STRING,
         isActive : type.BOOLEAN,
+        is_pengguna_sistem : type.BOOLEAN,
         status : type.INTEGER,
         created_at : type.DATE,
         created_by : type.INTEGER,

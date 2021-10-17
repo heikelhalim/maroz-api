@@ -8,9 +8,13 @@ const Pengguna = PenggunaModel(sequelize.sequelizeConn, seqlib);
 const UserRoleModel = require('../../models/define/UserRole');
 const UserRole = UserRoleModel(sequelize.sequelizeConn, seqlib);
  
+const UserJobModel = require('../../models/define/UserJob');
+const UserJob = UserJobModel(sequelize.sequelizeConn, seqlib);
 
 // Pengguna Relationship
 // Pengguna.belongsTo(KodStandardKedua, {foreignKey: 'id_negeri', targetKey: 'id_standard_kedua', as: 'Negeri'});
 Pengguna.hasOne(UserRole, {foreignKey: 'id_pengguna', targetKey: 'id_pengguna', as: 'Role'});
+Pengguna.hasMany(UserJob, {foreignKey: 'id_pengguna', targetKey: 'id_pengguna', as: 'Job'});
+
 
 module.exports = Pengguna;
