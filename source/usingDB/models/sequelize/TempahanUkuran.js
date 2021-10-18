@@ -6,18 +6,18 @@ const sequelize = require('../../../../sequelize');
 const TempahanUkuranModel = require('../../models/define/TempahanUkuran');
 const TempahanUkuran = TempahanUkuranModel(sequelize.sequelizeConn, seqlib);
 
+const KodKeduaModel = require('../../models/define/KodKedua');
+const KodKedua = KodKeduaModel(sequelize.sequelizeConn, seqlib);
 
-// const TempahanPemakaiModel = require('../../models/define/TempahanPemakai');
-// const TempahanPemakai = TempahanPemakaiModel(sequelize.sequelizeConn, seqlib);
+const DesignPakaianModel = require('../../models/define/DesignPakaian');
+const DesignPakaian = DesignPakaianModel(sequelize.sequelizeConn, seqlib);
 
-// const KontrakModel = require('../../models/define/Kontrak');
-// const Kontrak = KontrakModel(sequelize.sequelizeConn, seqlib);
 
 
  
 // TempahanPemakai.belongsTo(Kontrak, {foreignKey: 'id_kontrak', targetKey: 'id_kontrak', as: 'Kontrak'});
-// TempahanPemakai.belongsTo(Pemakai, {foreignKey: 'id_pemakai', targetKey: 'id_pemakai', as: 'Pemakai'});
-// TempahanPemakai.belongsTo(KodKedua, {foreignKey: 'id_status', targetKey: 'id_kod_kedua', as: 'Status'});
+TempahanUkuran.belongsTo(DesignPakaian, {foreignKey: 'id_dsgn_pakaian', targetKey: 'id_dsgn_pakaian', as: 'DesignPakaian'});
+TempahanUkuran.belongsTo(KodKedua, {foreignKey: 'id_jenis_pakaian', targetKey: 'id_kod_kedua', as: 'JenisPakaian'});
 
 
 

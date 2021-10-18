@@ -5,6 +5,9 @@ const TempahanUkuranModel = require("../../models/sequelize/TempahanUkuran");
 const SyarikatModel = require("../../models/sequelize/Syarikat");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const PenggunaModel = require("../../models/sequelize/User")
+
+const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
+
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const moment = require("moment");
@@ -569,6 +572,7 @@ const Kontrak = {
                     }
     
                     const showStatus = await TempahanPemakaiModel.count({
+                        where : {id_kontrak : req.body.id_kontrak},
                         include: [
                             {
                                 model : KodKeduaModel,
@@ -626,16 +630,22 @@ const Kontrak = {
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
                 order : [['id_kontrak', 'DESC']],
-                where : Helper.filterJoin(req, [
-                    {
-                        model : KontrakModel,
-                        columnsLike : [
-                            'kod_kontrak',
-                            'tajuk_kerja'
-                        ],
-                        columnsEqual : ['id_syarikat']
-                    } 
-                ], true),                
+                where : {
+                    [Op.and] : [ 
+                        Helper.filterJoin(req, [
+                            {
+                                model : KontrakModel,
+                                columnsLike : [
+                                    'kod_kontrak',
+                                    'tajuk_kerja'
+                                ],
+                                columnsEqual : ['id_syarikat']
+                            } 
+                        ], true),
+                        { id_kontrak : req.body.id_kontrak } 
+                     ]
+                },
+               
                 include : [
                     {                                
                         model : KodKeduaModel,
@@ -763,6 +773,49 @@ const Kontrak = {
             return res.status(400).send(error);
         }
     },
+
+    async getListTempahanPemakai(req, res) {
+        try {
+
+
+
+            var listTempahan = await TempahanUkuranModel.findAll({
+                subQuery: false,
+                distinct : true,
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                order : [['id_tempahan_ukuran', 'DESC']],              
+                include : [
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'JenisPakaian',
+                        attributes: ['kod_ref','keterangan']                   
+                    },
+                    {
+                        model : DesignPakaianModel,
+                        as : 'DesignPakaian',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                    },                                                       
+                ] 
+
+            });
+            return res.status(200).send({
+                // 'status_list' : arr_status_cnt,
+                // 'sizePerPage' : pageSize,
+                // 'page' : page,
+                'data' : listTempahan,
+            });
+
+
+            
+        } catch (error) {
+            
+        }
+    },
+    
     
     async deletePemakaiKontrak(req, res) {
         try {
