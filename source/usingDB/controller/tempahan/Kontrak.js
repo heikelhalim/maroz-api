@@ -34,7 +34,7 @@ const Kontrak = {
                 "id_dsgn_pakaian" : req.body.id_dsgn_pakaian,
                 "kod_kontrak" : req.body.kod_kontrak,
                 "id_jenis_kontrak" : req.body.id_jenis_kontrak,
-                "id_jenis_kerja" : req.body.id_jenis_kerja,
+                // "id_jenis_kerja" : req.body.id_jenis_kerja,
                 "tajuk_kerja" : req.body.tajuk_kerja,
                 "tajuk_ringkas" : req.body.tajuk_ringkas,
                 "tarikh_tutup" :  req.body.tarikh_tutup || null,
