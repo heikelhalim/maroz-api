@@ -27,6 +27,9 @@ const Kontrak = {
 
             const transaction = await KontrakModel.sequelize.transaction();
 
+
+
+
             var data = { 
                 "id_dsgn_pakaian" : req.body.id_dsgn_pakaian,
                 "kod_kontrak" : req.body.kod_kontrak,
@@ -34,8 +37,8 @@ const Kontrak = {
                 "id_jenis_kerja" : req.body.id_jenis_kerja,
                 "tajuk_kerja" : req.body.tajuk_kerja,
                 "tajuk_ringkas" : req.body.tajuk_ringkas,
-                "tarikh_tutup" :  moment(req.body.tarikh_tutup).format('YYYY/MM/DD'),
-                "tarikh_hantar" : moment(req.body.tarikh_hantar).format('YYYY/MM/DD'),
+                "tarikh_tutup" :  req.body.tarikh_tutup || null,
+                "tarikh_hantar" : req.body.tarikh_hantar || null,
                 "no_tender" : req.body.no_tender,
                 "rujukan" : req.body.rujukan,
                 "hantar_oleh" : req.body.hantar_oleh,
@@ -48,12 +51,12 @@ const Kontrak = {
                 "emel2" : req.body.emel2,
                 "id_status_kontrak" : req.body.id_status_kontrak,
                 "sebab_tidak_awarded" : req.body.sebab_tidak_awarded,
-                "tarikh_award" : moment(req.body.tarikh_award).format('YYYY/MM/DD'),
-                "tarikh_mula" : moment(req.body.tarikh_mula).format('YYYY/MM/DD'),
-                "tarikh_potong" : moment(req.body.tarikh_potong).format('YYYY/MM/DD'),
-                "tarikh_siap" : moment(req.body.tarikh_siap).format('YYYY/MM/DD'),
-                "tarikh_jahit" : moment(req.body.tarikh_jahit).format('YYYY/MM/DD'),
-                "tarikh_sulam_butang" : req.body.tarikh_sulam_butang,
+                "tarikh_award" : req.body.tarikh_award || null,
+                "tarikh_mula" : req.body.tarikh_mula || null,
+                "tarikh_potong" : req.body.tarikh_potong || null,
+                "tarikh_siap" : req.body.tarikh_siap || null,
+                "tarikh_jahit" : req.body.tarikh_jahit || null,
+                "tarikh_sulam_butang" : req.body.tarikh_sulam_butang || null,
                 "is_partial_delivery" : req.body.is_partial_delivery,
                 "bilangan_hari" : req.body.bilangan_hari,
                 "id_status_proses_kontrak" : await Helper.getIdKodKedua("DRFT", 'ref_status_proses_kontrak')
