@@ -16,6 +16,10 @@ const Helper = {
       case 'kod_pakaian': 
         noPerm = Helper.getSeqNum('seq_dsgn_kod_pakaian', 'DGPK');
         break;
+      case 'barcode_tempahan': 
+        noPerm = Helper.getSeqNum('seq_barcode_tempahan', 'TPC');
+        break;
+
 
     }
     return noPerm;

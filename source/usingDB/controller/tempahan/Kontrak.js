@@ -7,10 +7,13 @@ const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const PenggunaModel = require("../../models/sequelize/User")
 
 const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
+const TempahanProductionModel = require("../../models/sequelize/TempahanProduction");
+
 
 const Helper = require("../../controller/Helper");
 const { Op } = require("sequelize");
 const moment = require("moment");
+const TempahanProduction = require("../../models/sequelize/TempahanProduction");
 
 
 
@@ -917,7 +920,96 @@ const Kontrak = {
             console.log(error);
             return res.status(400).send(error);
         }
+    },
+
+    async hantarTempahan(req,res){
+        try {
+            
+            const transaction = await TempahanProduction.sequelize.transaction();
+
+
+            if (req.body.isFullHantar) //hantar semua tempahan
+            {
+                //get semua tempahan kontrak
+                var listtempahan = await TempahanUkuranModel.findAll({
+                    attributes: { 
+                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                    },                    
+                    include : [
+                        {                                
+                            model : TempahanPemakaiModel,
+                            as : 'Pemakai',
+                            required: true,
+                            attributes: { 
+                                exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                            },
+                            where : { id_kontrak : req.body.id_kontrak }
+                  
+                        },
+                    ]
+                });
+ 
+                var arr_Tempahan = [];
+                var idProses = await Helper.getIdKodKedua("PRS", 'ref_status_tempahan_pemakai')
+
+                for(var tempahan of listtempahan)
+                {
+                    //Create tempahan production based on bilangan tempahan
+                    var bil_tempahan = parseInt(tempahan.bilangan);
+                
+                    if (tempahan.bilangan) //only kalau ada bilangan
+                    {
+                        for (var i=0; i < bil_tempahan ; i++ )
+                        {
+                            //generate barcode
+                            var barcode = await Helper.genRunningNo("barcode_tempahan");
+
+                            var dataProd = {
+                                "id_tempahan_ukuran" : tempahan.id_tempahan_ukuran,
+                                "barcode" : barcode
+                            };
+
+                            arr_Tempahan.push(dataProd);                        
+                        }
+                    }
+
+                    //Update status pemakai baru --> proses
+                    var existPemakai = await TempahanPemakaiModel.findByPk(tempahan.id_pemakai_tempahan, {
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                            },
+                        });
+                    
+                    await existPemakai.update({ id_status : idProses }, {
+                            transaction : transaction
+                    }); 
+
+                }
+
+                if (arr_Tempahan.length>0)
+                {
+                    const eksportRawatan = await TempahanProductionModel.bulkCreate(arr_Tempahan, {
+                        transaction : transaction
+                    });  
+                }
+ 
+
+                    
+            }
+            else //hantar partial tempahan
+            {
+
+            }
+
+            await transaction.commit();
+            return res.status(200).send({ "mesej" : "Success hantar"});
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
     }
+
 
 }
 
