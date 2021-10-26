@@ -527,6 +527,12 @@ const Kontrak = {
                         as : 'TukangUkur',
                         attributes : ["nama"]
                     },
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'StatusPemakai',
+                        required : true,
+                        attributes: ['kod_ref','keterangan']                   
+                    },                    
                 ]
             });
 
@@ -560,68 +566,68 @@ const Kontrak = {
             var kod_status_kod = "";
             var arr_status_cnt = [];
 
-                //utk view penyemak
-                for (var item of kod_status){  
-                    var status_count = {};
-                    switch(item) {
-                        case "proses":
-                            kod_status_kod = kod_kedua.proses; //proses
-                            break;
-                        case "selesai":             
-                            kod_status_kod = kod_kedua.selesai; // selesai
-                            break;
-                        case "baru":
-                            kod_status_kod = kod_kedua.baru; // baru
-                            break;
-                        default:
-                            kod_status_kod = kod_kedua.baru; // Baru dan Auto Lulus - Pending Penyemak
-                    }
-    
-                    const showStatus = await TempahanPemakaiModel.count({
-                        where : {id_kontrak : req.body.id_kontrak},
-                        include: [
-                            {
-                                model : KodKeduaModel,
-                                as : 'StatusPemakai',
-                                required : true,
-                                where : {
-                                    kod_ref : kod_status_kod
-                                },
-                            },
-                        ]
-                    });
-                    status_count["status"] = item;
-                    status_count["cnt"] = showStatus;
-                    arr_status_cnt.push(status_count);
-                }  
-
-
-                var condition = {};
-
-                if (req.body.status_name)
-                {                
-                    var kod_status;      
-                
-                    switch(req.body.status_name) {
-                        case "proses":
-                            kod_status = kod_kedua.proses; //hantar
-                            break;
-                        case "selesai":             
-                            kod_status = kod_kedua.selesai; // selesai
-                            break;
-                        case "baru":
-                            kod_status = kod_kedua.baru; // draft
-                            break;
-                        default:
-                            kod_status = kod_kedua.baru; // Baru dan Auto Lulus - Pending Penyemak
-                    }
-                    
-                    condition = {
-                        'kod_ref' : kod_status ,
-                        'is_aktif' : true
-                    };
-
+            //utk view penyemak
+            for (var item of kod_status){  
+                var status_count = {};
+                switch(item) {
+                    case "proses":
+                        kod_status_kod = kod_kedua.proses; //proses
+                        break;
+                    case "selesai":             
+                        kod_status_kod = kod_kedua.selesai; // selesai
+                        break;
+                    case "baru":
+                        kod_status_kod = kod_kedua.baru; // baru
+                        break;
+                    default:
+                        kod_status_kod = kod_kedua.baru; // Baru dan Auto Lulus - Pending Penyemak
                 }
+
+                const showStatus = await TempahanPemakaiModel.count({
+                    where : {id_kontrak : req.body.id_kontrak},
+                    include: [
+                        {
+                            model : KodKeduaModel,
+                            as : 'StatusPemakai',
+                            required : true,
+                            where : {
+                                kod_ref : kod_status_kod
+                            },
+                        },
+                    ]
+                });
+                status_count["status"] = item;
+                status_count["cnt"] = showStatus;
+                arr_status_cnt.push(status_count);
+            }  
+
+
+            var condition = {};
+
+            if (req.body.status_name)
+            {                
+                var kod_status;      
+            
+                switch(req.body.status_name) {
+                    case "proses":
+                        kod_status = kod_kedua.proses; //hantar
+                        break;
+                    case "selesai":             
+                        kod_status = kod_kedua.selesai; // selesai
+                        break;
+                    case "baru":
+                        kod_status = kod_kedua.baru; // draft
+                        break;
+                    default:
+                        kod_status = kod_kedua.baru; // Baru dan Auto Lulus - Pending Penyemak
+                }
+                
+                condition = {
+                    'kod_ref' : kod_status ,
+                    'is_aktif' : true
+                };
+
+            }
 
 
 
@@ -645,7 +651,7 @@ const Kontrak = {
                                     'kod_kontrak',
                                     'tajuk_kerja'
                                 ],
-                                columnsEqual : ['id_syarikat']
+                                columnsEqual : ['id_syarikat','id_status']
                             } 
                         ], true),
                         { id_kontrak : req.body.id_kontrak } 
