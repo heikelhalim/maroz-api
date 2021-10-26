@@ -933,6 +933,11 @@ const Kontrak = {
             
             const transaction = await TempahanProduction.sequelize.transaction();
 
+            if (!req.body.id_kontrak)
+            {
+                console.log("Takde value");
+                return res.status(403).send({ "message" : "value id_kontrak is invalid" });
+            }
 
             if (req.body.isFullHantar) //hantar semua tempahan
             {
@@ -960,35 +965,49 @@ const Kontrak = {
 
                 for(var tempahan of listtempahan)
                 {
-                    //Create tempahan production based on bilangan tempahan
-                    var bil_tempahan = parseInt(tempahan.bilangan);
-                
-                    if (tempahan.bilangan) //only kalau ada bilangan
+                    //check if tempahan ni dah create kat production
+                    var listukuranProd = await TempahanProductionModel.findAll({ where : { id_tempahan_ukuran : tempahan.id_tempahan_ukuran } })
+
+                    if (listukuranProd.length==0)
                     {
-                        for (var i=0; i < bil_tempahan ; i++ )
-                        {
-                            //generate barcode
-                            var barcode = await Helper.genRunningNo("barcode_tempahan");
-
-                            var dataProd = {
-                                "id_tempahan_ukuran" : tempahan.id_tempahan_ukuran,
-                                "barcode" : barcode
-                            };
-
-                            arr_Tempahan.push(dataProd);                        
-                        }
-                    }
-
-                    //Update status pemakai baru --> proses
-                    var existPemakai = await TempahanPemakaiModel.findByPk(tempahan.id_pemakai_tempahan, {
-                        attributes: { 
-                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                            },
-                        });
+                        //Create tempahan production based on bilangan tempahan
+                        var bil_tempahan = parseInt(tempahan.bilangan);
                     
-                    await existPemakai.update({ id_status : idProses }, {
-                            transaction : transaction
-                    }); 
+                        if (tempahan.bilangan) //only kalau ada bilangan
+                        {
+                            for (var i=0; i < bil_tempahan ; i++ )
+                            {
+                                //generate barcode
+                                var barcode = await Helper.genRunningNo("barcode_tempahan");
+
+                                var dataProd = {
+                                    "id_tempahan_ukuran" : tempahan.id_tempahan_ukuran,
+                                    "barcode" : barcode,
+                                    "is_potong" : true,
+                                    "is_jahit" : true,
+                                    "is_packing" : true,
+
+                                };
+
+                                arr_Tempahan.push(dataProd);                        
+                            }
+                        }
+
+                        //Update status pemakai baru --> proses
+                        var existPemakai = await TempahanPemakaiModel.findByPk(tempahan.id_pemakai_tempahan, {
+                            attributes: { 
+                                exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                },
+                            });
+                        
+                        await existPemakai.update({ id_status : idProses }, {
+                                transaction : transaction
+                        }); 
+                    }
+                    else
+                    {
+                        console.log("VALUE DAH ADA");
+                    }
 
                 }
 
