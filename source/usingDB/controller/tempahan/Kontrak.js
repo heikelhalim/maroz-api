@@ -985,7 +985,7 @@ const Kontrak = {
                                     "barcode" : barcode,
                                     "is_potong" : true,
                                     "is_jahit" : true,
-                                    "is_packing" : true,
+                                    "is_packaging" : true,
 
                                 };
 

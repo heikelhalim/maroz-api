@@ -90,6 +90,8 @@ app.use(require('./source/usingDB/routes/pemakai/Pemakai'));
 //Kontrak
 app.use(require('./source/usingDB/routes/tempahan/Kontrak')); 
 
+//Production
+app.use(require('./source/usingDB/routes/tempahan/Production')); 
 
 
 // set port, listen for requests

@@ -12,7 +12,7 @@ module.exports = (sequelize, type) => {
         is_butang : type.BOOLEAN,
         is_sulam : type.BOOLEAN,
         is_qc : type.BOOLEAN,
-        is_packing : type.BOOLEAN,
+        is_packaging : type.BOOLEAN,
         status_potong : type.INTEGER,
         status_jahit : type.INTEGER,
         status_sulam : type.INTEGER,
