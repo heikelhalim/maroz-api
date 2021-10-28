@@ -11,9 +11,7 @@ const TempahanProductionModel = require("../../models/sequelize/TempahanProducti
 
 
 const Helper = require("../../controller/Helper");
-const { Op } = require("sequelize");
 const moment = require("moment");
-const TempahanUkuran = require("../../models/sequelize/TempahanUkuran");
 
 const Production = {
 
@@ -55,7 +53,7 @@ const Production = {
                 aliasStatus = "StatusQC";
                 filterFlow["is_qc"] = true;
             }
-            else if (flowProduction == "packing")
+            else if (flowProduction == "packaging")
             {
                 aliasStatus = "StatusPackaging";
                 filterFlow["is_packaging"] = true;
@@ -185,13 +183,150 @@ const Production = {
 
     async assignTukang (req,res) {
         try {
-            
 
+            if (req.body.idTukang)
+            {
+                const transaction = await TempahanProductionModel.sequelize.transaction();
+
+                const flowProduction = req.body.flowProduction;
+
+                var data= {}                    
+                
+                const idStatusPendingAgih = await Helper.getIdKodKedua("PEA", 'ref_status_production')
+
+
+                if (flowProduction == "potong")
+                {
+                    data["id_tukang_potong"] = req.body.idTukang;
+                    data["status_potong"] = idStatusPendingAgih;
+                }
+                else if (flowProduction == "jahit")
+                {
+                    data["id_tukang_jahit"] = req.body.idTukang;
+                    data["status_jahit"] = idStatusPendingAgih;
+
+                }
+                else if (flowProduction == "sulam")
+                {
+                    data["id_tukang_sulam"] = req.body.idTukang;
+                    data["status_sulam"] = idStatusPendingAgih;
+
+                }
+                else if (flowProduction == "butang")
+                {
+                    data["id_tukang_butang"] = req.body.idTukang;
+                    data["status_butang"] = idStatusPendingAgih;
+
+                }
+                else if (flowProduction == "qc")
+                {
+                    data["id_tukang_qc"] = req.body.idTukang;
+                    data["status_qc"] = idStatusPendingAgih;
+
+                }
+                else if (flowProduction == "packaging")
+                {
+                    data["id_tukang_packaging"] = req.body.idTukang;
+                    data["status_packaging"] = idStatusPendingAgih;
+
+                }
+    
+                const arrayTempahan = req.body.idTempahanProduction;
+    
+                if (arrayTempahan.length>0)
+                {
+                    //if ada item array
+    
+                    await TempahanProductionModel.update(data,{
+                        where : { id_tempahan_production : arrayTempahan },
+                        transaction : transaction
+                    })
+    
+                    await transaction.commit();
+                }
+                 
+            }
+            
+            return res.status(200).send({ "message" : "Success Assign" });
 
         } catch (error) {
+            console.log(error);
             return res.status(400).send(error);
         }
     },
+
+    async assignPendingToProses (req,res) {
+        try {
+
+            const transaction = await TempahanProductionModel.sequelize.transaction();
+
+            const flowProduction = req.body.flowProduction;
+
+            var data= {}                    
+            
+            const idStatusProses = await Helper.getIdKodKedua("PRS", 'ref_status_production') 
+
+
+            if (flowProduction == "potong")
+            {
+                data["status_potong"] = idStatusProses;
+                data["tarikh_mula_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+            }
+            else if (flowProduction == "jahit")
+            {
+                data["status_jahit"] = idStatusProses;
+                data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+            }
+            else if (flowProduction == "sulam")
+            {
+                data["status_sulam"] = idStatusProses;
+                data["tarikh_mula_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+            }
+            else if (flowProduction == "butang")
+            {
+                data["status_butang"] = idStatusProses;
+                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+            }
+            else if (flowProduction == "qc")
+            {
+                data["status_qc"] = idStatusProses;
+                data["tarikh_mula_qc"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+            }
+            else if (flowProduction == "packaging")
+            {
+                data["status_packaging"] = idStatusProses;
+                data["tarikh_mula_packaging"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+            }
+
+            const arrayTempahan = req.body.idTempahanProduction;
+
+            if (arrayTempahan.length>0)
+            {
+                //if ada item array
+
+                await TempahanProductionModel.update(data,{
+                    where : { id_tempahan_production : arrayTempahan },
+                    transaction : transaction
+                })
+
+                await transaction.commit();
+            }
+                 
+            
+            return res.status(200).send({ "message" : "Success Assign" });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
             
     async cetakBarcode (req,res) {
         try {
@@ -215,7 +350,7 @@ const Production = {
 
     async barcodeScanSelesaiProses (req,res) {
         try {
-            const transaction = await TempahanUkuranModel.sequelize.transaction();
+            const transaction = await TempahanProductionModel.sequelize.transaction();
 
             var flowProduction = req.body.flowProduction; // potong,jahit,sulam,butang,qc,packing
             var statusSelesai = await Helper.getIdKodKedua("SLS", 'ref_status_production')
@@ -234,96 +369,145 @@ const Production = {
             else if (flowProduction == "jahit")
             {
                 filter["status_jahit"] = statusSelesai;
-
             }
             else if (flowProduction == "sulam")
             {
                 filter["status_sulam"] = statusSelesai;
-
             }
             else if (flowProduction == "butang")
             {
-                filter["status_butang"] = statusSelesai;
-
+                filter["status_butang"] = statusSelesai;          
             }
             else if (flowProduction == "qc")
             {
 
-                filter["status_qc"] = statusSelesai;
+                filter["status_qc"] = statusSelesai;              
             }
-            else if (flowProduction == "packing")
+            else if (flowProduction == "packaging")
             {
-                filter["status_packing"] = statusSelesai;
-
+                filter["status_packaging"] = statusSelesai;
+ 
             }
 
-            var checkStatusDetailProd = await TempahanUkuranModel.findOne({
+            var checkStatusDetailProd = await TempahanProductionModel.findOne({
                 where : filter            
             });
 
             //check data ni dah scan terima ke belum
             if (checkStatusDetailProd)
             {
-                return res.status(403).send({"message" : "Tempahan ini sudah scan Selesai"});
+                return res.status(200).send({"message" : "Tempahan ini sudah scan Selesai"});
             }
             else
             {                
                 //Update status selesai
-                var detailProd = await TempahanUkuranModel.findOne({
-                    where : { barcode : req.body.barcode }            
+
+                var data = {};
+                var detailProd = await TempahanProductionModel.findOne({
+                    where : { barcode : req.body.barcode },
+                    include : [
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusPotong",
+                            attributes: ['kod_ref','keterangan'] 
+                        },
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusJahit",
+                            attributes: ['kod_ref','keterangan'] 
+                        },
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusButang",
+                            attributes: ['kod_ref','keterangan'] 
+                        },
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusQC",
+                            attributes: ['kod_ref','keterangan'] 
+                        },
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusSulam",
+                            attributes: ['kod_ref','keterangan'] 
+                        },
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusPackaging",
+                            attributes: ['kod_ref','keterangan'] 
+                        },
+
+                    ]            
                 });
 
 
                 if (flowProduction == "potong")
                 {
-                    filter["status_potong"] = statusSelesai;
-                    filter["status_jahit"] = statusBelumAgih;
+                    data["status_potong"] = statusSelesai;
+                    data["status_jahit"] = statusBelumAgih;
+                    data["tarikh_akhir_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
                 }
                 else if (flowProduction == "jahit")
                 {
-                    filter["status_jahit"] = statusSelesai;
-
+                    data["status_jahit"] = statusSelesai;
+                    data["tarikh_akhir_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+ 
                     //check prod perlu lalu flow ke
-                    if (detailProd.is_sulam == true)
+                    if (detailProd.is_sulam == false && detailProd.is_butang == false && detailProd.is_qc == false)
                     {
-                        filter["status_sulam"] = statusBelumAgih;
+                        //Proceed to packaging 
+                        data["status_packaging"] = statusBelumAgih;
                     }
-
-                    if (detailProd.is_butang == true)
+                    else
                     {
-                        filter["status_butang"] = statusBelumAgih; 
-                    }
+                        //check butang, sulam and qc
 
-                    if (detailProd.is_qc == true)
-                    {
-                        filter["status_qc"] = statusBelumAgih; 
+                        if (detailProd.is_sulam == true)
+                        {
+                            data["status_sulam"] = statusBelumAgih;
+                        }
+
+                        if (detailProd.is_butang == true)
+                        {
+                            data["status_butang"] = statusBelumAgih; 
+                        }
+
+                        if (detailProd.is_qc == true)
+                        {
+                            data["status_qc"] = statusBelumAgih; 
+                        }
+
                     }
 
 
                 }
                 else if (flowProduction == "sulam")
                 {
-                    filter["status_sulam"] = statusSelesai;
+                    data["status_sulam"] = statusSelesai;
+                    data["tarikh_akhir_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
 
 
-                    var isSelesai= this.checkButangSulamQc("sulam",detailProd);
+                    var isSelesai= Production.checkButangSulamQc("sulam",detailProd);
     
                     //jika semua flow selesai, hantar ke packing
                     if (isSelesai)
                     {
-                        filter["status_packing"] = statusBelumAgih;
+                        data["status_packaging"] = statusBelumAgih;
                     }
 
 
                 }
                 else if (flowProduction == "butang")
                 {
-                    filter["status_butang"] = statusSelesai;
-                    var isSelesai= this.checkButangSulamQc("butang",detailProd);
+                    data["status_butang"] = statusSelesai;
+                    data["tarikh_akhir_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');      
+
+                    var isSelesai= Production.checkButangSulamQc("butang",detailProd);
                     //jika semua flow selesai, hantar ke packing
+
                     if (isSelesai)
                     {
-                        filter["status_packing"] = statusBelumAgih;
+                        data["status_packaging"] = statusBelumAgih;
                     }
                     
     
@@ -331,25 +515,33 @@ const Production = {
                 else if (flowProduction == "qc")
                 {
     
-                    filter["status_qc"] = statusSelesai;
-                    var isSelesai= this.checkButangSulamQc("qc",detailProd);
+                    data["status_qc"] = statusSelesai;
+                    data["tarikh_akhir_qc"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');  
+
+                    var isSelesai= Production.checkButangSulamQc("qc",detailProd);
                     //jika semua flow selesai, hantar ke packing
                     if (isSelesai)
                     {
-                        filter["status_packing"] = statusBelumAgih;
+                        data["status_packaging"] = statusBelumAgih;
                     }
                     
                 }
-                else if (flowProduction == "packing")
+                else if (flowProduction == "packaging")
                 {
-                    filter["status_packing"] = statusSelesai;
+                    data["status_packaging"] = statusSelesai;
+                    data["tarikh_akhir_packaging"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                    
                 }
 
 
                 
-                await detailProd.update(filter,{
+                await TempahanProductionModel.update(data,{
+                    where : { barcode : req.body.barcode },
                     transaction : transaction
                 });   
+
+                await transaction.commit();
+
+                return res.status(200).send({ "message" : "Success Scan" });
             }
 
             
@@ -357,21 +549,31 @@ const Production = {
 
 
         } catch (error) {
+            console.log(error);
             return res.status(400).send(error);
         }
     },
 
-    async checkButangSulamQc(checkPoint,item)
+    checkButangSulamQc(checkPoint,item)
     {
 
         if (checkPoint == "sulam")
         {
             var checkButang = item.is_butang;
-            var statusButang = item.status_butang;
-    
-            var checkQC= item.is_qc;
-            var statusQC = item.status_butang;
+            var statusButang = null;
+            if (item.StatusButang)
+            {
+                statusButang =  item.StatusButang.kod_ref; 
+            }
 
+            var checkQC= item.is_qc;
+            var statusQC = null
+            if (item.StatusQC)
+            {
+                statusQC = item.StatusQC.kod_ref; 
+            }
+
+            
             //check 
             if (checkButang && checkQC)
             {
@@ -403,25 +605,91 @@ const Production = {
         {
             
             var checkSulam = item.is_sulam;
-            var statusSulam = item.status_sulam;
+            var statusSulam = null;
+            if (item.StatusSulam)
+            {
+                statusSulam = item.StatusSulam.kod_ref;
+            }
 
             var checkQC= item.is_qc;
-            var statusQC = item.status_butang;
+            var statusQC = null
+            if (item.StatusQC)
+            {
+                statusQC = item.StatusQC.kod_ref; 
+            }
+            
+
+
+            if (checkSulam && checkQC)
+            {
+                //ada sulam dan QC
+                //check dua2 selesai 
+                if (statusSulam == "SLS" && statusQC == "SLS")
+                {
+                    return true;
+                }
+            }
+            else if (!checkSulam && !checkQC)
+            {
+                //takde sulam dan QC,boleh proceed packing
+                return true;
+            }
+            else
+            {
+                //samada butang atau qc
+      
+                if (statusSulam == "SLS")
+                {                 console.log("NI")
+                return true; }
+                else if (statusQC == "SLS")
+                {                 console.log("NIkot")
+                return true; }
+                    
+            }            
 
         }
         else if (checkPoint == "qc")
         {
             var checkSulam = item.is_sulam;
-            var statusSulam = item.status_sulam;
+            var statusSulam = null;
+            if (item.StatusSulam)
+            {
+                statusSulam = item.StatusSulam.kod_ref;
+            }
     
             var checkButang = item.is_butang;
-            var statusButang = item.status_butang;
+            var statusButang = null;
+            if (item.StatusButang)
+            {
+                statusButang =  item.StatusButang.kod_ref; 
+            }
+
+            if (checkSulam && checkButang)
+            {
+                //ada sulam dan QC
+                //check dua2 selesai 
+                if (statusSulam == "SLS" && statusButang == "SLS")
+                {
+                    return true;
+                }
+            }
+            else if (!checkSulam && !checkButang)
+            {
+                //takde sulam dan QC,boleh proceed packing
+                return true;
+            }
+            else
+            {
+                //samada butang atau qc
+      
+                if (statusSulam == "SLS")
+                { return true; }
+                else if (statusButang == "SLS")
+                { return true; }
+                    
+            }       
+            
         }
-
-
-
-
-
 
     }
 
