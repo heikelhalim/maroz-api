@@ -181,6 +181,71 @@ const Production = {
         }
     },
 
+    async getDetailTempahanPemakai (req,res){
+        try {
+
+            var detailProd = await TempahanProductionModel.findAll({    
+                attributes: { 
+                    exclude: ['created_at','created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by','createdAt','updatedAt','deletedAt']
+                },                            
+                include : [
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusPotong",
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusJahit",
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusButang",
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusQC",
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusSulam",
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusPackaging",
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                    {
+                        model : TempahanUkuranModel,
+                        as : "TempahanUkuran",
+                        required : true,
+                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan"],
+                        include : [
+                            {
+                                model : TempahanPemakaiModel,
+                                as : "Pemakai",
+                                required : true,
+                                where : { id_pemakai_tempahan : req.params.id },
+                                attributes: { 
+                                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                               }
+                            }   
+                        ]
+                    }
+                ]            
+            });
+
+            return res.status(200).send(detailProd);
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
     async assignTukang (req,res) {
         try {
 
