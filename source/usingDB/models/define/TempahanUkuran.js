@@ -6,6 +6,7 @@ module.exports = (sequelize, type) => {
             autoIncrement: true
         },
         id_kontrak : type.INTEGER,
+        kod_tempahan : type.STRING,
         id_pemakai_tempahan : type.INTEGER,
         id_dsgn_pakaian : type.INTEGER,
         id_jenis_pakaian : type.INTEGER,

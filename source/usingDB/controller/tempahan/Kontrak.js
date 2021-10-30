@@ -769,6 +769,7 @@ const Kontrak = {
             }
             else
             {
+                data["kod_tempahan"] = await Helper.genRunningNo("kod_tempahan");
                 //Create
                 ukuran = await TempahanUkuranModel.create(data, {
                     transaction : transaction

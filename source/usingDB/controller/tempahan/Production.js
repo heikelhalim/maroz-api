@@ -27,35 +27,42 @@ const Production = {
 
             var filterFlow = {};
             var aliasStatus = "";
+            var aliasTukang = "";
 
             if (flowProduction == "potong")
             {
                 aliasStatus = "StatusPotong";
+                aliasTukang = "TukangPotong";
                 filterFlow["is_potong"] = true;
             }
             else if (flowProduction == "jahit")
             {
                 aliasStatus = "StatusJahit";
+                aliasTukang = "TukangJahit";
                 filterFlow["is_jahit"] = true;
             }
             else if (flowProduction == "sulam")
             {
                 aliasStatus = "StatusSulam";
+                aliasTukang = "TukangSulam";
                 filterFlow["is_sulam"] = true;
             }
             else if (flowProduction == "butang")
             {
                 aliasStatus = "StatusButang";
+                aliasTukang = "TukangButang";
                 filterFlow["is_butang"] = true;
             }
             else if (flowProduction == "qc")
             {
                 aliasStatus = "StatusQC";
+                aliasTukang = "TukangQC";
                 filterFlow["is_qc"] = true;
             }
             else if (flowProduction == "packaging")
             {
                 aliasStatus = "StatusPackaging";
+                aliasTukang = "TukangPackaging";
                 filterFlow["is_packaging"] = true;
             }
 
@@ -146,10 +153,15 @@ const Production = {
                         attributes: ['kod_ref','keterangan'] 
                     },
                     {
+                        model : PenggunaModel,
+                        as : aliasTukang,
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
                         model : TempahanUkuranModel,
                         as : "TempahanUkuran",
                         required : true,
-                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian"],
+                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","kod_tempahan"],
                         include : [
                             {
                                 model : TempahanPemakaiModel,
@@ -157,8 +169,28 @@ const Production = {
                                 required : true,
                                 attributes: { 
                                     exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                               }
-                            }   
+                               },
+                               include : [
+                                    {
+                                        model : KontrakModel,
+                                        as : "Kontrak",
+                                        required : true, 
+                                        attributes : ["kod_kontrak",]               
+                                    }                                   
+                               ]
+                            },
+                            {
+                                model : DesignPakaianModel,
+                                as : 'DesignPakaian',
+                                attributes: ["kod_design"],
+                                include : [
+                                    {                                
+                                        model : KodKeduaModel,
+                                        as : 'JenisPakaian',
+                                        attributes: ['kod_ref','keterangan']                   
+                                    },
+                                ]
+                            }                               
                         ]
                     }
 
@@ -220,10 +252,40 @@ const Production = {
                         attributes: ['kod_ref','keterangan'] 
                     },
                     {
+                        model : PenggunaModel,
+                        as : "TukangPotong",
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
+                        model : PenggunaModel,
+                        as : "TukangJahit",
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
+                        model : PenggunaModel,
+                        as : "TukangButang",
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
+                        model : PenggunaModel,
+                        as : "TukangSulam",
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
+                        model : PenggunaModel,
+                        as : "TukangQC",
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
+                        model : PenggunaModel,
+                        as : "TukangPackaging",
+                        attributes: ['id_pengguna','nama','nama_pengguna'] 
+                    },
+                    {
                         model : TempahanUkuranModel,
                         as : "TempahanUkuran",
                         required : true,
-                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan"],
+                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
                         include : [
                             {
                                 model : TempahanPemakaiModel,
@@ -232,8 +294,28 @@ const Production = {
                                 where : { id_pemakai_tempahan : req.params.id },
                                 attributes: { 
                                     exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                               }
-                            }   
+                               },
+                               include : [
+                                    {
+                                        model : KontrakModel,
+                                        as : "Kontrak",
+                                        required : true, 
+                                        attributes : ["kod_kontrak",]               
+                                    }                                   
+                                ]
+                            },
+                            {
+                                model : DesignPakaianModel,
+                                as : 'DesignPakaian',
+                                attributes: ["kod_design"],
+                                include : [
+                                    {                                
+                                        model : KodKeduaModel,
+                                        as : 'JenisPakaian',
+                                        attributes: ['kod_ref','keterangan']                   
+                                    },
+                                ]
+                            }                                  
                         ]
                     }
                 ]            
