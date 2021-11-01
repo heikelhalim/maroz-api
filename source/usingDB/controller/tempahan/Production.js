@@ -215,6 +215,8 @@ const Production = {
 
     async getDetailTempahanPemakai (req,res){
         try {
+            console.log("test");
+            
 
             var detailProd = await TempahanProductionModel.findAll({    
                 attributes: { 
