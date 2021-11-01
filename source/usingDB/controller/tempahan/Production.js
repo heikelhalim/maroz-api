@@ -18,6 +18,7 @@ const Production = {
     async senaraiProduction (req,res) {
         try {
 
+            console.log("test");
             const pageSize = req.body.sizePerPage || 100;
             const page = req.body.page || 1;
 
