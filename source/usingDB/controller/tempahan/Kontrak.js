@@ -833,10 +833,79 @@ const Kontrak = {
 
             
         } catch (error) {
-            
+            console.log(error);
+            return res.status(400).send(error);
         }
     },
-    
+
+    async getListTempahanPendingConfirmation(req, res) {
+        try {
+
+            const pageSize = req.body.sizePerPage || 10;
+            const page = req.body.page || 1;
+
+            var listTempahan = await TempahanUkuranModel.findAndCountAll({
+                subQuery: false,
+                distinct : true,
+                limit : pageSize, 
+                offset : Helper.offset(page, pageSize),    
+                order : [['id_kontrak', 'DESC']],                
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                order : [['id_tempahan_ukuran', 'DESC']],              
+                include : [
+                    {
+                        model : TempahanPemakaiModel,
+                        as : "Pemakai",
+                        required : true,
+                        where : { "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai') },
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                       },
+                       include : [
+                            {
+                                model : KontrakModel,
+                                as : "Kontrak",
+                                required : true, 
+                                attributes : ["kod_kontrak",]               
+                            }                                   
+                       ]
+                    },                    
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'JenisPakaian',
+                        attributes: ['kod_ref','keterangan']                   
+                    },
+                    {
+                        model : DesignPakaianModel,
+                        as : 'DesignPakaian',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPakaian',
+                                attributes: ['kod_ref','keterangan']                   
+                            },
+                        ]
+                    },                                                       
+                ] 
+
+            });
+            return res.status(200).send({
+                'data' : listTempahan,
+            });
+
+
+            
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+        
     
     async deletePemakaiKontrak(req, res) {
         try {
@@ -984,6 +1053,7 @@ const Kontrak = {
                                 var dataProd = {
                                     "id_tempahan_ukuran" : tempahan.id_tempahan_ukuran,
                                     "barcode" : barcode,
+                                    "status_potong" : await Helper.getIdKodKedua("BEA", 'ref_status_production'),
                                     "is_potong" : true,
                                     "is_jahit" : true,
                                     "is_packaging" : true,
