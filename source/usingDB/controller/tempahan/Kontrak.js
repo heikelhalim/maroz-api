@@ -868,7 +868,14 @@ const Kontrak = {
                                 model : KontrakModel,
                                 as : "Kontrak",
                                 required : true, 
-                                attributes : ["kod_kontrak",]               
+                                attributes : ["kod_kontrak"],
+                                include : [
+                                    {                                
+                                        model : SyarikatModel,
+                                        as : 'Syarikat',
+                                        attributes: ['nama_syarikat','kod_syarikat']                    
+                                    }
+                                ]               
                             }                                   
                        ]
                     },                    
