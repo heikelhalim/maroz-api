@@ -848,7 +848,35 @@ const Kontrak = {
                 subQuery: false,
                 distinct : true,
                 limit : pageSize, 
-                offset : Helper.offset(page, pageSize),    
+                offset : Helper.offset(page, pageSize),   
+                where : Helper.filterJoin(req, [
+                    {
+                        model : TempahanUkuranModel,
+                        columnsLike : [
+                            'kod_tempahan'                        
+                        ]
+                    },
+                    {
+                        model : TempahanPemakaiModel,
+                        columnsLike : [
+                            'nama'                        
+                        ],
+                        joinAlias : 'Pemakai'
+                    },
+                    {
+                        model : KontrakModel,
+                        columnsEqual : ['id_kontrak'],
+                        joinAlias : 'Pemakai->Kontrak'
+                    },                    
+                    {
+                        model : DesignPakaianModel,
+                        columnsLike : [
+                            'kod_design'                        
+                        ],
+                        joinAlias : 'DesignPakaian'
+                    },
+
+                ], true),                 
                 order : [['id_kontrak', 'DESC']],                
                 attributes: { 
                              exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
@@ -868,7 +896,7 @@ const Kontrak = {
                                 model : KontrakModel,
                                 as : "Kontrak",
                                 required : true, 
-                                attributes : ["kod_kontrak"],
+                                attributes : ["id_kontrak","kod_kontrak"],
                                 include : [
                                     {                                
                                         model : SyarikatModel,
