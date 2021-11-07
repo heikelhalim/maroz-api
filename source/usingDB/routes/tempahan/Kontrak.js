@@ -22,6 +22,8 @@ router.post('/kontrak/tempahan/listtempahanpemakai',Auth.verifyToken,  Kontrak.g
 router.post('/kontrak/tempahan/hantar',Auth.verifyToken,  Kontrak.hantarTempahan);
 router.post('/kontrak/tempahan/listPendingConfirm',Auth.verifyToken,  Kontrak.getListTempahanPendingConfirmation);
 
+router.get('/kontrak/tempahan/countConfirmTempahan',Auth.verifyToken,  Kontrak.getStatusCountConfirmTempahan);
+
 
 router.delete('/kontrak/deletepemakai/', Auth.verifyToken, Kontrak.deletePemakaiKontrak);
 

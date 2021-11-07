@@ -941,6 +941,61 @@ const Kontrak = {
         }
     },
         
+    async getStatusCountConfirmTempahan(req,res) {
+        try {
+
+            var listTempahan = await TempahanUkuranModel.count({
+                subQuery: false,
+                distinct : true,             
+                order : [['id_kontrak', 'DESC']],                
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                order : [['id_tempahan_ukuran', 'DESC']],              
+                include : [
+                    {
+                        model : TempahanPemakaiModel,
+                        as : "Pemakai",
+                        required : true,
+                        where : { "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai') },
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                       },
+                    },                                                                         
+                ] 
+
+            });          
+
+
+            var listPotong = await TempahanProductionModel.count({
+                subQuery: false,
+                distinct : true,                  
+                include : [
+                    {
+                        model : KodKeduaModel,
+                        as : "StatusPotong",
+                        required : true,
+                        where : { 
+                            'kod_ref' : "BEA" ,
+                            'is_aktif' : true 
+                        },
+                        attributes: ['kod_ref','keterangan'] 
+                    },
+                ]
+
+            });
+
+            return res.status(200).send(
+                {
+                    "countPending" : listTempahan,
+                    "countPotong" : listPotong,
+                }
+            );  
+            
+        } catch (error) {
+            return res.status(400).send(error);
+        }
+    },
     
     async deletePemakaiKontrak(req, res) {
         try {
