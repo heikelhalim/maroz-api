@@ -216,8 +216,50 @@ const Production = {
 
     async getDetailTempahanPemakai (req,res){
         try {
-            console.log("test");
-            
+
+            var modelUkuran = {
+                model : TempahanUkuranModel,
+                as : "TempahanUkuran",
+                required : true,
+                attributes: ["id_tempahan_ukuran","id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
+                include : [
+                    {
+                        model : TempahanPemakaiModel,
+                        as : "Pemakai",
+                        required : true,
+                        where : { id_pemakai_tempahan : req.params.id },
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                       },
+                       include : [
+                            {
+                                model : KontrakModel,
+                                as : "Kontrak",
+                                required : true, 
+                                attributes : ["kod_kontrak",]               
+                            }                                   
+                        ]
+                    },
+                    {
+                        model : DesignPakaianModel,
+                        as : 'DesignPakaian',
+                        attributes: ["kod_design"],
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPakaian',
+                                attributes: ['kod_ref','keterangan']                   
+                            },
+                        ]
+                    }                                  
+                ]
+            }
+
+            if (req.body.id_tempahan_ukuran)
+            {
+                modelUkuran["where"]= { id_tempahan_ukuran : req.body.id_tempahan_ukuran }
+            }
+
 
             var detailProd = await TempahanProductionModel.findAll({    
                 attributes: { 
@@ -284,43 +326,7 @@ const Production = {
                         as : "TukangPackaging",
                         attributes: ['id_pengguna','nama','nama_pengguna'] 
                     },
-                    {
-                        model : TempahanUkuranModel,
-                        as : "TempahanUkuran",
-                        required : true,
-                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
-                        include : [
-                            {
-                                model : TempahanPemakaiModel,
-                                as : "Pemakai",
-                                required : true,
-                                where : { id_pemakai_tempahan : req.params.id },
-                                attributes: { 
-                                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                               },
-                               include : [
-                                    {
-                                        model : KontrakModel,
-                                        as : "Kontrak",
-                                        required : true, 
-                                        attributes : ["kod_kontrak",]               
-                                    }                                   
-                                ]
-                            },
-                            {
-                                model : DesignPakaianModel,
-                                as : 'DesignPakaian',
-                                attributes: ["kod_design"],
-                                include : [
-                                    {                                
-                                        model : KodKeduaModel,
-                                        as : 'JenisPakaian',
-                                        attributes: ['kod_ref','keterangan']                   
-                                    },
-                                ]
-                            }                                  
-                        ]
-                    }
+                    modelUkuran
                 ]            
             });
 
