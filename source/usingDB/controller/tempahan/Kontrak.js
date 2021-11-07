@@ -838,8 +838,45 @@ const Kontrak = {
         }
     },
 
-    async getListTempahanPendingConfirmation(req, res) {
+    async getListTempahanUkuran(req, res) {
         try {
+
+
+            var modelPemakai = {
+                model : TempahanPemakaiModel,
+                as : "Pemakai",
+                required : true,
+                attributes: { 
+                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                include : [
+                    {
+                        model : KontrakModel,
+                        as : "Kontrak",
+                        required : true, 
+                        attributes : ["id_kontrak","kod_kontrak"],
+                        include : [
+                            {                                
+                                model : SyarikatModel,
+                                as : 'Syarikat',
+                                attributes: ['nama_syarikat','kod_syarikat']                    
+                            }
+                        ]               
+                    },
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'StatusPemakai',
+                        required : true,
+                        attributes: ['kod_ref','keterangan']                   
+                    }                                                           
+                ]
+                
+            }
+
+            if (req.body.jenisPage == "confirmTempahan")
+            {
+                modelPemakai["where"] = { "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai') }
+            }
 
             const pageSize = req.body.sizePerPage || 10;
             const page = req.body.page || 1;
@@ -859,7 +896,8 @@ const Kontrak = {
                     {
                         model : TempahanPemakaiModel,
                         columnsLike : [
-                            'nama'                        
+                            'nama',     
+                            'no_telefon'                   
                         ],
                         joinAlias : 'Pemakai'
                     },
@@ -883,30 +921,7 @@ const Kontrak = {
                 },
                 order : [['id_tempahan_ukuran', 'DESC']],              
                 include : [
-                    {
-                        model : TempahanPemakaiModel,
-                        as : "Pemakai",
-                        required : true,
-                        where : { "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai') },
-                        attributes: { 
-                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                       },
-                       include : [
-                            {
-                                model : KontrakModel,
-                                as : "Kontrak",
-                                required : true, 
-                                attributes : ["id_kontrak","kod_kontrak"],
-                                include : [
-                                    {                                
-                                        model : SyarikatModel,
-                                        as : 'Syarikat',
-                                        attributes: ['nama_syarikat','kod_syarikat']                    
-                                    }
-                                ]               
-                            }                                   
-                       ]
-                    },                    
+                    modelPemakai,                    
                     {                                
                         model : KodKeduaModel,
                         as : 'JenisPakaian',

@@ -20,7 +20,7 @@ router.post('/kontrak/tempahan/createtempahan',Auth.verifyToken,  Kontrak.create
 router.post('/kontrak/tempahan/listtempahanpemakai',Auth.verifyToken,  Kontrak.getListTempahanPemakai);
 
 router.post('/kontrak/tempahan/hantar',Auth.verifyToken,  Kontrak.hantarTempahan);
-router.post('/kontrak/tempahan/listPendingConfirm',Auth.verifyToken,  Kontrak.getListTempahanPendingConfirmation);
+router.post('/kontrak/tempahan/listTempahanAll',Auth.verifyToken,  Kontrak.getListTempahanUkuran);
 
 router.get('/kontrak/tempahan/countConfirmTempahan',Auth.verifyToken,  Kontrak.getStatusCountConfirmTempahan);
 
