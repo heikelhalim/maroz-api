@@ -93,6 +93,9 @@ app.use(require('./source/usingDB/routes/tempahan/Kontrak'));
 //Production
 app.use(require('./source/usingDB/routes/tempahan/Production')); 
 
+//DeliveryOrder
+app.use(require('./source/usingDB/routes/deliveryorder/DeliveryOrder')); 
+
 
 // set port, listen for requests
 const PORT = process.env.PORT || 80;

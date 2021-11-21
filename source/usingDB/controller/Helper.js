@@ -22,7 +22,9 @@ const Helper = {
       case 'barcode_tempahan': 
         noPerm = Helper.getSeqNum('seq_barcode_tempahan', 'TPC');
         break;
-
+      case 'delivery_order': 
+        noPerm = Helper.getSeqNum('seq_delivery_order', 'DO');
+        break;
 
     }
     return noPerm;

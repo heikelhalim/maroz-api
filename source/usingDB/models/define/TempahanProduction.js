@@ -37,6 +37,7 @@ module.exports = (sequelize, type) => {
         id_tukang_sulam : type.INTEGER,
         id_tukang_qc : type.INTEGER,
         id_tukang_packaging : type.INTEGER,
+        id_do : type.INTEGER,
         created_at : type.DATE,
         created_by : type.INTEGER,
         updated_at : type.DATE,
