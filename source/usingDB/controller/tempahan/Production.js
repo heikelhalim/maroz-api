@@ -195,7 +195,8 @@ const Production = {
                         ]
                     }
 
-                ]
+                ],
+                order : [['barcode', 'DESC']],
 
             });
 
