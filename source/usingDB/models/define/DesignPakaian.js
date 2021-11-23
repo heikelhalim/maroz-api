@@ -26,7 +26,8 @@ module.exports = (sequelize, type) => {
         is_sulam : type.BOOLEAN,
         is_qc : type.BOOLEAN,
         is_aktif : type.BOOLEAN,
-        nota : type.STRING
+        nota : type.STRING,
+        jantina : type.STRING
         }, {
         tableName: 'dsgn_pakaian',
         schema: process.env.SCHEMA,

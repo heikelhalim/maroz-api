@@ -43,6 +43,7 @@ const Pakaian = {
                 "is_qc" : req.body.is_qc,
                 "is_aktif" : req.body.is_aktif,
                 "nota" : req.body.nota,
+                "jantina" : req.body.jantina,
 
                 //Image
                 "file_name": req.file.filename,
