@@ -20,7 +20,7 @@ const Helper = {
         noPerm = Helper.getSeqNum('seq_kod_tempahan', 'KDT');
         break;
       case 'barcode_tempahan': 
-        noPerm = Helper.getSeqNum('seq_barcode_tempahan', 'TPC');
+        noPerm = Helper.getSeqBarcode('seq_barcode_tempahan', 'TPC');
         break;
       case 'delivery_order': 
         noPerm = Helper.getSeqNum('seq_delivery_order', 'DO');
@@ -57,6 +57,31 @@ const Helper = {
       return err;
     }
   },
+
+  async getSeqBarcode(sequence_name, trxcode){
+    try {
+      var tmp_next_num = await KodKeduaModel.sequelize.query("SELECT nextval ('"+process.env.SCHEMA+"."+sequence_name+"')", {
+        type: seqlib.QueryTypes.SELECT
+      });
+
+
+      var next_num = tmp_next_num[0].nextval
+      
+      var n = next_num.toString().length
+      var digitloop;
+      !trxcode ? digitloop = 12 : digitloop = 13
+      for (var i=0; i<digitloop-n; i++) {
+        next_num = "0"+next_num
+      }
+      const noPermLesen = next_num;
+      // console.log(noPermLesen);
+
+      return noPermLesen;
+    }
+    catch(err) {
+      return err;
+    }
+  },  
 
   async getIdKodKedua(cur_kod, ref_status){
     const idStatus = await KodKeduaModel.scope(['checkActive']).findOne({
