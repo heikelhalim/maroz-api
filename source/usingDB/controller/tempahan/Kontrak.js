@@ -1114,6 +1114,8 @@ const Kontrak = {
                 return res.status(403).send({ "message" : "value id_kontrak is invalid" });
             }
 
+            var idProses = await Helper.getIdKodKedua("PRS", 'ref_status_tempahan_pemakai')
+
             if (req.body.isFullHantar) //hantar semua tempahan
             {
                 //get semua tempahan kontrak
@@ -1136,13 +1138,20 @@ const Kontrak = {
                 });
  
                 var arr_Tempahan = [];
-                var idProses = await Helper.getIdKodKedua("PRS", 'ref_status_tempahan_pemakai')
+
 
                 for(var tempahan of listtempahan)
                 {
                     //check if tempahan ni dah create kat production
                     var listukuranProd = await TempahanProductionModel.findAll({ where : { id_tempahan_ukuran : tempahan.id_tempahan_ukuran } })
 
+                    //get design pakaian 
+                    var dsgnPakaian = await DesignPakaianModel.findByPk( tempahan.id_dsgn_pakaian,{
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                            },
+                    });
+              
                     if (listukuranProd.length==0)
                     {
                         //Create tempahan production based on bilangan tempahan
@@ -1161,6 +1170,9 @@ const Kontrak = {
                                     "status_potong" : await Helper.getIdKodKedua("BEA", 'ref_status_production'),
                                     "is_potong" : true,
                                     "is_jahit" : true,
+                                    "is_butang" : dsgnPakaian.is_butang,
+                                    "is_sulam" : dsgnPakaian.is_sulam,
+                                    "is_qc" : dsgnPakaian.is_qc,
                                     "is_packaging" : true,
 
                                 };
@@ -1199,7 +1211,83 @@ const Kontrak = {
             }
             else //hantar partial tempahan
             {
+                var lisTempahan = req.body.listTempahan;
 
+                if (lisTempahan)
+                {
+                    if (lisTempahan.length>0)
+                    {
+
+                        var arr_Tempahan = [];
+                        for (var idtempahan of lisTempahan){
+
+                            var tempukuran = await TempahanUkuranModel.findByPk(idtempahan,{
+                                attributes: { 
+                                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                    },
+                            })
+
+                            //check if tempahan ni dah create kat production
+                            var listukuranProd = await TempahanProductionModel.findAll({ where : { id_tempahan_ukuran : tempukuran.id_tempahan_ukuran } })
+
+                            //get design pakaian 
+                            var dsgnPakaian = await DesignPakaianModel.findByPk( tempukuran.id_dsgn_pakaian,{
+                                attributes: { 
+                                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                    },
+                            });
+                    
+                            if (listukuranProd.length==0)
+                            {
+                                //Create tempahan production based on bilangan tempahan
+                                var bil_tempahan = parseInt(tempukuran.bilangan);
+                            
+                                if (tempukuran.bilangan) //only kalau ada bilangan
+                                {
+                                    for (var i=0; i < bil_tempahan ; i++ )
+                                    {
+                                        //generate barcode
+                                        var barcode = await Helper.genRunningNo("barcode_tempahan");
+
+                                        var dataProd = {
+                                            "id_tempahan_ukuran" : tempukuran.id_tempahan_ukuran,
+                                            "barcode" : barcode,
+                                            "status_potong" : await Helper.getIdKodKedua("BEA", 'ref_status_production'),
+                                            "is_potong" : true,
+                                            "is_jahit" : true,
+                                            "is_butang" : dsgnPakaian.is_butang,
+                                            "is_sulam" : dsgnPakaian.is_sulam,
+                                            "is_qc" : dsgnPakaian.is_qc,
+                                            "is_packaging" : true,
+
+                                        };
+
+                                        arr_Tempahan.push(dataProd);                        
+                                    }
+                                }
+
+                                //Update status pemakai baru --> proses
+                                var existPemakai = await TempahanPemakaiModel.findByPk(tempukuran.id_pemakai_tempahan, {
+                                    attributes: { 
+                                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                        },
+                                    });
+                                
+                                await existPemakai.update({ id_status : idProses }, {
+                                        transaction : transaction
+                                }); 
+                            }
+                        }
+
+                        if (arr_Tempahan.length>0)
+                        {
+                            const eksportRawatan = await TempahanProductionModel.bulkCreate(arr_Tempahan, {
+                                transaction : transaction
+                            });  
+                        }
+                        
+                    }
+                }
             }
 
             await transaction.commit();
