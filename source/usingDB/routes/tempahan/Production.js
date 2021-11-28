@@ -9,6 +9,7 @@ router.post('/production/detailTempahanPemakai/:id',Auth.verifyToken,  Productio
 router.post('/production/assignTukang',Auth.verifyToken,  Production.assignTukang);
 router.post('/production/assignPendingToProses',Auth.verifyToken,  Production.assignPendingToProses);
 router.post('/production/assignProsesToSelesai',Auth.verifyToken,  Production.barcodeScanSelesaiProses);
+router.post('/production/printBarcode',Auth.verifyToken,  Production.cetakBarcode);
 
 
 

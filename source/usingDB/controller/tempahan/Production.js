@@ -9,6 +9,14 @@ const PenggunaModel = require("../../models/sequelize/User")
 const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
 const TempahanProductionModel = require("../../models/sequelize/TempahanProduction");
 
+const barcode = require('barcode');
+const JsBarcode = require('jsbarcode');
+const pdf = require('html-pdf');
+const { createCanvas } = require("canvas");
+const path = require('path');
+const mime = require('mime');
+const fs = require('fs');  
+
 
 const Helper = require("../../controller/Helper");
 const moment = require("moment");
@@ -490,7 +498,89 @@ const Production = {
             
 
 
+            // var arrayBarcode = ["0000000000000","0000000000001","0000000000002",
+            // "0000000000003","0000000000004","0000000000005",
+            // "0000000000006","0000000000007","0000000000008",
+            // "0000000000009","0000000000010","0000000000011"]
+
+
+            var arrayBarcode = req.body.arrayBarcode;
+
+            //loop
+            var maxline = 3;
+            var count = 0;
+            var stringBc = "";
+
+
+
+
+            //Read template
+
+            var dir = process.env.DOCUMENTS+'barcode/';
+            var random = Helper.random();
+            var fileName = 'print_barcode'+random+'.pdf';
+            var filePath = dir+fileName; 
+
+            var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/barcode.html'), 'utf8');
+
+            var canvas = createCanvas();
+            
+            var htmlfrag = "";
+            var format = "";
+            
+            for (var item of arrayBarcode)
+            {
+                JsBarcode(canvas, item); 
+
+                // stringBc += item+"  " ;
+
+                format = '<img src="' + canvas.toDataURL() + '" /><br>';
+
+
+                htmlfrag += format;
+                
+                // count++;
+
+
+                // if (count==maxline)
+                // {
+                //     console.log(stringBc);
+                //     stringBc = "";
+                //     count = 0;
+                // }
+                
+            }            
+
+
+            // JsBarcode(canvas, "Hello"); 
+            // canvas = createCanvas();
+            // JsBarcode(canvas, "OHAYO"); 
+
+
+            html = html.replace('{barcode_image}', htmlfrag);
+
+            function downloadPdf() {
+                return new Promise((resolve, reject) => {
+                    return pdf.create(html).toStream(function (err, stream) {
+                        if (err) return res.send(err);
+                        res.type('pdf');
+                        stream.pipe(res);
+                    });
+                }); 
+            } 
+            // var genPdf = await generatePdf(html, options, filePath);
+            var options = { format: 'Letter' };
+
+            await downloadPdf(html, options, filePath);
+
+
+
+
+        
+
+
         } catch (error) {
+            console.log(error);
             return res.status(400).send(error);
         }
     },
