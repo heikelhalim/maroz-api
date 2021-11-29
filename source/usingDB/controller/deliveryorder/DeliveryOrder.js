@@ -243,72 +243,6 @@ const DeliveryOrder = {
         }
 
 
-        //Revert DO tu null on tempahan
-        var listProductionSelesai = await TempahanProductionModel.findAll({
-            subQuery: false,
-            distinct : true,
-            include : [
-                {
-                    model : KodKeduaModel,
-                    as : "StatusPackaging",
-                    required : true,
-                    where : { kod_ref : "SLS" }, //selesai packaging
-                    attributes: ['kod_ref','keterangan'] 
-                },
-                {
-                    model : TempahanUkuranModel,
-                    as : "TempahanUkuran",
-                    required : true,
-                    attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","kod_tempahan"],
-                    include : [
-                        {
-                            model : TempahanPemakaiModel,
-                            as : "Pemakai",
-                            required : true,
-                            attributes: { 
-                                exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                           },
-                           include : [
-                                {
-                                    model : KontrakModel,
-                                    as : "Kontrak",
-                                    required : true,
-                                    where : { id_kontrak : req.body.id_kontrak }, 
-                                    attributes : ["kod_kontrak",]               
-                                }                                   
-                           ]
-                        },                          
-                    ]
-                }
-
-            ]
-
-        });
-
-
-        if (listProductionSelesai)
-        {
-            
-            if (listProductionSelesai.length>0)
-            {
-                var arrayProd = [];
-                for (var idProd of listProductionSelesai)
-                {
-                    arrayProd.push(idProd.id_tempahan_production);
-                }
-    
-                const dataRevert = {
-                    "id_do" : null
-                }
-        
-                await TempahanProductionModel.update(dataRevert,{
-                    where : { id_tempahan_production : arrayProd },
-                    transaction : transaction
-                })
-            }
-
-            
-        }
 
 
 
@@ -328,6 +262,24 @@ const DeliveryOrder = {
     
             }
         }
+
+        //Revert Tempahan yg dah selected DO
+        if (body.listTempahanRevert)
+        {
+            if (body.listTempahanRevert.length>0)
+            {
+                const dataProdRev = {
+                    "id_do" : null
+                }
+    
+                await TempahanProductionModel.update(dataProdRev,{
+                    where : { id_tempahan_production : body.listTempahan },
+                    transaction : transaction
+                })
+    
+            }
+        }
+
 
 
              
