@@ -14,6 +14,7 @@ const Helper = require("../../controller/Helper");
 const moment = require("moment");
 const bodyParser = require("body-parser");
 
+const { Op } = require("sequelize");
 
 const DeliveryOrder = {
 
@@ -74,10 +75,29 @@ const DeliveryOrder = {
             const pageSize = req.body.sizePerPage || 10;
             const page = req.body.page || 1;
 
+            var conditionDO = {};
+            if (req.body.status == "pending")
+            {
+                //belum select utk DO - null
+                conditionDO = { [Op.is]: null };
+            }
+            else if (req.body.status == "selected")
+            {
+                //dah pilih untuk DO - not null
+                conditionDO = { [Op.ne]: null }; 
+            }
+            else
+            {
+                conditionDO = { [Op.is]: null };
+            }
+
             var listProductionSelesai = await TempahanProductionModel.findAndCountAll({
                 subQuery: false,
                 distinct : true,
                 limit : pageSize, 
+                where : {
+                    id_do : conditionDO,
+                },
                 offset : Helper.offset(page, pageSize),   
                 include : [
                     {

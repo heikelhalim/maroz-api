@@ -588,6 +588,7 @@ const Production = {
     async cetakDesign (req,res) {
         try {
             
+            
 
 
         } catch (error) {
