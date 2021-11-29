@@ -1,7 +1,7 @@
 const KontrakModel = require("../../models/sequelize/Kontrak");
 const TempahanPemakaiModel = require("../../models/sequelize/TempahanPemakai");
 const TempahanUkuranModel = require("../../models/sequelize/TempahanUkuran");
-// const SyarikatModel = require("../../models/sequelize/Syarikat");
+const SyarikatModel = require("../../models/sequelize/Syarikat");
 // const PenggunaModel = require("../../models/sequelize/User")
 
 const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
@@ -37,7 +37,20 @@ const DeliveryOrder = {
                         model : KodKeduaModel,
                         as : 'Status',
                         attributes: ['kod_ref','keterangan']                   
-                    }
+                    },
+                    {
+                        model : KontrakModel,
+                        as : "Kontrak",
+                        required : true, 
+                        attributes : ["kod_kontrak","id_kontrak"],
+                        include : [
+                            {                                
+                                model : SyarikatModel,
+                                as : 'Syarikat',
+                                attributes: ['nama_syarikat','kod_syarikat']                    
+                            },
+                        ]              
+                    }    
                 ]
 
             });
