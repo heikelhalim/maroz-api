@@ -55,7 +55,23 @@ const DeliveryOrder = {
                 ]
 
             });
+
+            var modifiedList = [];
+            for (var item of listDO.rows)
+            {
+                //get bilangan DO
+                
+                var details = await TempahanProductionModel.findAndCountAll({
+                    where : { id_do : item.dataValues.id_do}
+                });
+
+
+                item.dataValues.bilangan = details.count
+                modifiedList.push(item);
+            }
                             
+            listDO.rows = modifiedList;
+
             return res.status(200).send({
                 'totalSize' : listDO.count,
                 'sizePerPage' : pageSize,
