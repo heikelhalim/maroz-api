@@ -84,7 +84,23 @@ const DeliveryOrder = {
             else if (req.body.status == "selected")
             {
                 //dah pilih untuk DO - not null
-                conditionDO = { [Op.ne]: null }; 
+                if (req.body.id_do)
+                {
+                    //keluarkan list yg dah dah ada DO
+                    conditionDO = req.body.id_do;
+                }
+                else
+                {
+                    //return terus null data dulu sbb baru create DO
+                    return res.status(200).send({
+                        'totalSize' : 0,
+                        'sizePerPage' : pageSize,
+                        'page' : page,
+                        'data' : [],
+                    });
+
+                }
+ 
             }
             else
             {
