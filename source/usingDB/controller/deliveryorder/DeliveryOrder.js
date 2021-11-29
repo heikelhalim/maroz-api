@@ -43,7 +43,7 @@ const DeliveryOrder = {
                         model : KontrakModel,
                         as : "Kontrak",
                         required : true, 
-                        attributes : ["kod_kontrak","id_kontrak"],
+                        attributes : ["kod_kontrak","id_kontrak","tajuk_ringkas"],
                         include : [
                             {                                
                                 model : SyarikatModel,
@@ -142,7 +142,7 @@ const DeliveryOrder = {
                                         as : "Kontrak",
                                         required : true, 
                                         where : { id_kontrak : req.body.id_kontrak},
-                                        attributes : ["id_kontrak","kod_kontrak"],
+                                        attributes : ["id_kontrak","kod_kontrak",'tajuk_ringkas'],
                                         include : [
                                             {                                
                                                 model : SyarikatModel,
@@ -168,7 +168,8 @@ const DeliveryOrder = {
                         ]
                     }
 
-                ]
+                ],
+                order : [['id_tempahan_production', 'DESC']],
 
             });
 
