@@ -125,6 +125,7 @@ const DeliveryOrder = {
                                         model : KontrakModel,
                                         as : "Kontrak",
                                         required : true, 
+                                        where : { id_kontrak : req.body.id_kontrak},
                                         attributes : ["id_kontrak","kod_kontrak",]               
                                     }                                   
                                ]
