@@ -126,7 +126,14 @@ const DeliveryOrder = {
                                         as : "Kontrak",
                                         required : true, 
                                         where : { id_kontrak : req.body.id_kontrak},
-                                        attributes : ["id_kontrak","kod_kontrak",]               
+                                        attributes : ["id_kontrak","kod_kontrak"],
+                                        include : [
+                                            {                                
+                                                model : SyarikatModel,
+                                                as : 'Syarikat',
+                                                attributes: ['nama_syarikat','kod_syarikat']                    
+                                            },
+                                        ]                 
                                     }                                   
                                ]
                             },
