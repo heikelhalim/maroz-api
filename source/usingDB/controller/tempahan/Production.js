@@ -420,6 +420,78 @@ const Production = {
         }
     },
 
+    async revertPendingToBelumAgih (req,res) {
+        try {
+ 
+  
+            const transaction = await TempahanProductionModel.sequelize.transaction();
+
+            const flowProduction = req.body.flowProduction;
+
+            var data= {}                    
+            
+            const idStatusPendingAgih = await Helper.getIdKodKedua("BEA", 'ref_status_production') //Belum Agih
+
+
+            if (flowProduction == "potong")
+            {
+                data["id_tukang_potong"] = null;
+                data["status_potong"] = idStatusPendingAgih;
+            }
+            else if (flowProduction == "jahit")
+            {
+                data["id_tukang_jahit"] = null;
+                data["status_jahit"] = idStatusPendingAgih;
+
+            }
+            else if (flowProduction == "sulam")
+            {
+                data["id_tukang_sulam"] = null;
+                data["status_sulam"] = idStatusPendingAgih;
+
+            }
+            else if (flowProduction == "butang")
+            {
+                data["id_tukang_butang"] = null;
+                data["status_butang"] = idStatusPendingAgih;
+
+            }
+            else if (flowProduction == "qc")
+            {
+                data["id_tukang_qc"] = null;
+                data["status_qc"] = idStatusPendingAgih;
+
+            }
+            else if (flowProduction == "packaging")
+            {
+                data["id_tukang_packaging"] = null;
+                data["status_packaging"] = idStatusPendingAgih;
+
+            }
+
+            const arrayTempahan = req.body.idTempahanProduction;
+
+            if (arrayTempahan.length>0)
+            {
+                //if ada item array
+
+                await TempahanProductionModel.update(data,{
+                    where : { id_tempahan_production : arrayTempahan },
+                    transaction : transaction
+                })
+
+                await transaction.commit();
+            }
+                
+         
+            return res.status(200).send({ "message" : "Success Assign" });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },    
+
     async assignPendingToProses (req,res) {
         try {
 
