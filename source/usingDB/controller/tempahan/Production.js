@@ -8,6 +8,8 @@ const PenggunaModel = require("../../models/sequelize/User")
 
 const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
 const TempahanProductionModel = require("../../models/sequelize/TempahanProduction");
+const KadarUpahModel = require("../../models/sequelize/KadarUpah");
+
 
 const barcode = require('barcode');
 const JsBarcode = require('jsbarcode');
@@ -504,29 +506,26 @@ const Production = {
             const idStatusProses = await Helper.getIdKodKedua("PRS", 'ref_status_production') 
 
 
+
             if (flowProduction == "potong")
             {
                 data["status_potong"] = idStatusProses;
                 data["tarikh_mula_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
-
             }
             else if (flowProduction == "jahit")
             {
                 data["status_jahit"] = idStatusProses;
-                data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
-
+                data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');            
             }
             else if (flowProduction == "sulam")
             {
                 data["status_sulam"] = idStatusProses;
-                data["tarikh_mula_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
-
+                data["tarikh_mula_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                
             }
             else if (flowProduction == "butang")
             {
                 data["status_butang"] = idStatusProses;
-                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
-
+                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                
             }
             else if (flowProduction == "qc")
             {
@@ -551,8 +550,9 @@ const Production = {
                     where : { id_tempahan_production : arrayTempahan },
                     transaction : transaction
                 })
-
+       
                 await transaction.commit();
+
             }
                  
             
@@ -681,26 +681,31 @@ const Production = {
             //pass value barcode
             filter["barcode"] = req.body.barcode; 
 
+            var jenisProduction = "";
 
             if (flowProduction == "potong")
             {
-                filter["status_potong"] = statusSelesai;
+                filter["status_potong"] = statusSelesai;                
+                jenisProduction = await Helper.getIdKodKedua("PTG", 'ref_jenis_production') 
+
             }
             else if (flowProduction == "jahit")
             {
                 filter["status_jahit"] = statusSelesai;
+                jenisProduction = await Helper.getIdKodKedua("JHT", 'ref_jenis_production')                 
             }
             else if (flowProduction == "sulam")
             {
                 filter["status_sulam"] = statusSelesai;
+                jenisProduction = await Helper.getIdKodKedua("SLM", 'ref_jenis_production') 
             }
             else if (flowProduction == "butang")
             {
                 filter["status_butang"] = statusSelesai;          
+                jenisProduction = await Helper.getIdKodKedua("BTG", 'ref_jenis_production')                
             }
             else if (flowProduction == "qc")
             {
-
                 filter["status_qc"] = statusSelesai;              
             }
             else if (flowProduction == "packaging")
@@ -756,6 +761,30 @@ const Production = {
                             as : "StatusPackaging",
                             attributes: ['kod_ref','keterangan'] 
                         },
+                        {
+                            model : TempahanUkuranModel,
+                            as : "TempahanUkuran",
+                            required : true,
+                            attributes: ["id_tempahan_ukuran","id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
+                            include : [
+                                {
+                                    model : TempahanPemakaiModel,
+                                    as : "Pemakai",
+                                    required : true,
+                                    attributes: { 
+                                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                   },
+                                   include : [
+                                        {
+                                            model : KontrakModel,
+                                            as : "Kontrak",
+                                            required : true, 
+                                            attributes : ["id_kontrak"]               
+                                        }                                   
+                                    ]
+                                }                                
+                            ]
+                        }                        
 
                     ]            
                 });
@@ -858,6 +887,55 @@ const Production = {
                     where : { barcode : req.body.barcode },
                     transaction : transaction
                 });   
+
+
+                //Kiraan upah tukang
+                if (flowProduction != "packaging" || flowProduction == "qc"){
+                
+
+                    var idTukang = "";
+
+                    if (flowProduction == "potong")
+                    {
+                        idTukang = detailProd.id_tukang_potong
+                    }
+                    else  if (flowProduction == "jahit")
+                    {
+                        idTukang = detailProd.id_tukang_jahit
+                    }
+                    else  if (flowProduction == "butang")
+                    {
+                        idTukang = detailProd.id_tukang_butang
+                    }
+                    else  if (flowProduction == "sulam")
+                    {
+                        idTukang = detailProd.id_tukang_sulam
+                    }
+
+
+                    //check kadar upah per kontrak dah create ke belum
+                    var dataKadar = {
+                        "id_kontrak" : detailProd.TempahanUkuran.Pemakai.Kontrak.id_kontrak,
+                        "id_jenis_kerja" : jenisProduction,
+                        "id_tukang" : idTukang
+                    }
+
+                    var existKadarUpah = await KadarUpahModel.findOne({
+                        where : dataKadar
+                    });
+
+                
+                    if (!existKadarUpah)
+                    {
+                        //create kadar upah
+                        await KadarUpahModel.create(dataKadar,{
+                            transaction : transaction
+                        })
+                    }
+
+                }
+
+
 
                 await transaction.commit();
 
