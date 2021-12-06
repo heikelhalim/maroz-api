@@ -1,4 +1,5 @@
 const KadarUpahModel = require("../../models/sequelize/KadarUpah");
+const KadarUpahInvoiceModel = require("../../models/sequelize/KadarUpahInvoice");
 const PenggunaModel = require("../../models/sequelize/User")
 const KontrakModel = require("../../models/sequelize/Kontrak");
 
@@ -6,7 +7,7 @@ const KontrakModel = require("../../models/sequelize/Kontrak");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const Helper = require("../Helper");
 const { Op } = require("sequelize");
-const { moment } = require("moment");
+const moment = require("moment");
 
 
 
@@ -136,6 +137,12 @@ const KadarUpah = {
                         where : condition,
                         attributes: ['kod_ref','keterangan']     
                     },                    
+                    {
+                        model : KodKeduaModel,
+                        as : 'Status',
+                        required : false,
+                        attributes: ['kod_ref','keterangan']     
+                    },     
                 ]
 
             });
@@ -193,7 +200,201 @@ const KadarUpah = {
             console.log(error);
             return res.status(400).send(error);
         }
-    }
+    },
+
+    async createInvoice(req, res) {
+        try {
+            
+            const transaction = await KadarUpahInvoiceModel.sequelize.transaction();
+
+            var body = req.body;
+
+            if (body.arrayKadarUpah.length>0)
+            {
+                var arrayInvoice = []
+                for (var kadarUpah of body.arrayKadarUpah)
+                {
+                    var noInvoice  = await Helper.genRunningNo("invoice")
+
+                    var dataInvoice = {
+                        "no_invoice" : noInvoice,
+                        "tarikh_invoice" : moment(new Date()).format('YYYY/MM/DD HH:mm:ss'),
+                        "jumlah_upah" : kadarUpah.jumlah_upah,
+                        "dihantar_oleh" : req.decoded.id,
+                        "id_kadar_upah" : kadarUpah.id_kadar_upah
+                    }
+
+                    arrayInvoice.push(dataInvoice);
+
+                    //Change status kadar Upah
+
+                    var dataUpah = { "id_status" : await Helper.getIdKodKedua("HTR","ref_status_kiraan_upah") }
+
+                    await KadarUpahModel.update(dataUpah,{
+                        where : { id_kadar_upah : kadarUpah.id_kadar_upah },
+                        transaction : transaction 
+                    })
+
+                }
+
+                await KadarUpahInvoiceModel.bulkCreate(arrayInvoice, {
+                    transaction : transaction
+                });  
+
+            }
+
+            await transaction.commit();
+
+            return res.status(200).send({ "message" : "Berjaya create invoice." });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+    async getListInvoice(req, res) {
+        try {
+
+            const pageSize = req.body.sizePerPage || 10;
+            const page = req.body.page || 1;
+
+            var invoiceList = await KadarUpahInvoiceModel.findAndCountAll({
+                where : Helper.filterJoin(req, [
+                    {
+                        model : KadarUpahModel,
+                        columnsLike : [
+                            'nama',
+                        ],
+                        columnsEqual : ['id_pengguna'],
+                        joinAlias : 'KadarUpah'
+                    },
+                ], true),
+                subQuery: false, 
+                distinct : true,
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                limit : pageSize, 
+                offset : Helper.offset(page, pageSize),    
+                order : [['id_kadar_upah', 'DESC']],
+                include : [
+                    {
+                        model : KadarUpahModel,
+                        as : 'KadarUpah',
+                        required : true,
+                        include : [
+                            {                                
+                                model : KontrakModel,
+                                as : 'Kontrak',
+                                required : true,
+                                attributes: ['id_kontrak','kod_kontrak','tajuk_ringkas']                   
+                            },
+                            {                                
+                                model : PenggunaModel,
+                                as : 'Tukang',
+                                required : true,
+                                attributes: ['nama']                   
+                            },                    
+                            {
+                                model : KodKeduaModel,
+                                as : 'JenisKerja',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']     
+                            },                    
+                        ]
+                    },
+                    {                                
+                        model : PenggunaModel,
+                        as : 'Staf',
+                        required : true,
+                        attributes: ['nama']                   
+                    }, 
+  
+                ]
+
+            });
+                            
+            if (!invoiceList){
+                return res.status(404).send({'message': 'List tidak dijumpai'});
+            }
+
+            return res.status(200).send({
+                'totalSize' : invoiceList.count,
+                'sizePerPage' : pageSize,
+                'page' : page,
+                'data' : invoiceList.rows,
+            });
+
+
+            }catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+
+    async getDetailInvoice(req, res) {
+        try {
+
+
+            var invoiceDetail = await KadarUpahInvoiceModel.findOne({
+                where : { id_kadar_upah_invoice : req.params.id },
+                subQuery: false, 
+                distinct : true,
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                include : [
+                    {
+                        model : KadarUpahModel,
+                        as : 'KadarUpah',
+                        required : true,
+                        include : [
+                            {                                
+                                model : KontrakModel,
+                                as : 'Kontrak',
+                                required : true,
+                                attributes: ['id_kontrak','kod_kontrak','tajuk_ringkas']                   
+                            },
+                            {                                
+                                model : PenggunaModel,
+                                as : 'Tukang',
+                                required : true,
+                                attributes: ['nama']                   
+                            },                    
+                            {
+                                model : KodKeduaModel,
+                                as : 'JenisKerja',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']     
+                            },                    
+                        ]
+                    },
+                    {                                
+                        model : PenggunaModel,
+                        as : 'Staf',
+                        required : true,
+                        attributes: ['nama']                   
+                    }, 
+  
+                ]
+
+            });
+                            
+            if (!invoiceDetail){
+                return res.status(404).send({'message': 'List tidak dijumpai'});
+            }
+
+            return res.status(200).send(invoiceDetail);
+
+
+            }catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
 }
 
 module.exports = KadarUpah;

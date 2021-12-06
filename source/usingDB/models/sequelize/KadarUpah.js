@@ -17,6 +17,7 @@ const KodKedua = KodKeduaModel(sequelize.sequelizeConn, seqlib);
 KadarUpah.belongsTo(Kontrak, {foreignKey: 'id_kontrak', targetKey: 'id_kontrak', as: 'Kontrak'});
 KadarUpah.belongsTo(Pengguna, {foreignKey: 'id_tukang', targetKey: 'id_pengguna', as: 'Tukang'});
 KadarUpah.belongsTo(KodKedua, {foreignKey: 'id_jenis_kerja', targetKey: 'id_kod_kedua', as: 'JenisKerja'});
+KadarUpah.belongsTo(KodKedua, {foreignKey: 'id_status', targetKey: 'id_kod_kedua', as: 'Status'});
 
 
 module.exports = KadarUpah;

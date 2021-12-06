@@ -25,6 +25,9 @@ const Helper = {
       case 'delivery_order': 
         noPerm = Helper.getSeqNum('seq_delivery_order', 'DO');
         break;
+      case 'invoice': 
+        noPerm = Helper.getSeqNum('seq_no_invoice', 'INV');
+        break;
 
     }
     return noPerm;
