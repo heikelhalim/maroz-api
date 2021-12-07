@@ -377,18 +377,21 @@ const Production = {
                 {
                     data["id_tukang_sulam"] = req.body.idTukang;
                     data["status_sulam"] = idStatusPendingAgih;
+                    data["is_lock"] = true;
 
                 }
                 else if (flowProduction == "butang")
                 {
                     data["id_tukang_butang"] = req.body.idTukang;
                     data["status_butang"] = idStatusPendingAgih;
+                    data["is_lock"] = true;
 
                 }
                 else if (flowProduction == "qc")
                 {
                     data["id_tukang_qc"] = req.body.idTukang;
                     data["status_qc"] = idStatusPendingAgih;
+                    data["is_lock"] = true;
 
                 }
                 else if (flowProduction == "packaging")
@@ -450,18 +453,23 @@ const Production = {
             {
                 data["id_tukang_sulam"] = null;
                 data["status_sulam"] = idStatusPendingAgih;
+                data["is_lock"] = false;
+
 
             }
             else if (flowProduction == "butang")
             {
                 data["id_tukang_butang"] = null;
                 data["status_butang"] = idStatusPendingAgih;
+                data["is_lock"] = false;
 
             }
             else if (flowProduction == "qc")
             {
                 data["id_tukang_qc"] = null;
                 data["status_qc"] = idStatusPendingAgih;
+                data["is_lock"] = false;
+
 
             }
             else if (flowProduction == "packaging")
@@ -834,6 +842,7 @@ const Production = {
                 {
                     data["status_sulam"] = statusSelesai;
                     data["tarikh_akhir_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+                    data["is_lock"] = false;
 
 
                     var isSelesai= Production.checkButangSulamQc("sulam",detailProd);
@@ -850,6 +859,7 @@ const Production = {
                 {
                     data["status_butang"] = statusSelesai;
                     data["tarikh_akhir_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');      
+                    data["is_lock"] = false;
 
                     var isSelesai= Production.checkButangSulamQc("butang",detailProd);
                     //jika semua flow selesai, hantar ke packing
@@ -866,6 +876,7 @@ const Production = {
     
                     data["status_qc"] = statusSelesai;
                     data["tarikh_akhir_qc"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');  
+                    data["is_lock"] = false;
 
                     var isSelesai= Production.checkButangSulamQc("qc",detailProd);
                     //jika semua flow selesai, hantar ke packing

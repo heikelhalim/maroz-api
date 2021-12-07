@@ -38,6 +38,7 @@ module.exports = (sequelize, type) => {
         id_tukang_qc : type.INTEGER,
         id_tukang_packaging : type.INTEGER,
         id_do : type.INTEGER,
+        is_lock : type.BOOLEAN,
         created_at : type.DATE,
         created_by : type.INTEGER,
         updated_at : type.DATE,
