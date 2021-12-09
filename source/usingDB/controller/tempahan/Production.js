@@ -9,7 +9,7 @@ const PenggunaModel = require("../../models/sequelize/User")
 const DesignPakaianModel = require("../../models/sequelize/DesignPakaian");
 const TempahanProductionModel = require("../../models/sequelize/TempahanProduction");
 const KadarUpahModel = require("../../models/sequelize/KadarUpah");
-
+const KadarUpahInvoiceModel = require("../../models/sequelize/KadarUpahInvoice");
 
 const barcode = require('barcode');
 const JsBarcode = require('jsbarcode');
@@ -931,18 +931,55 @@ const Production = {
                         "id_tukang" : idTukang
                     }
 
-                    var existKadarUpah = await KadarUpahModel.findOne({
+                    var existKadarUpah = await KadarUpahModel.findAll({
                         where : dataKadar
                     });
 
                 
-                    if (!existKadarUpah)
+                    if (existKadarUpah.length<0)
                     {
                         //create kadar upah
                         await KadarUpahModel.create(dataKadar,{
                             transaction : transaction
                         })
                     }
+                    else
+                    {
+                        //check dah create invoice ke. kalau belum tak perlu
+                        var arrayInv = [];
+
+                        for (var kadarUpah of existKadarUpah)
+                        {
+                            //Check ada invoice tak
+                            var existInvoice = await KadarUpahInvoiceModel.findOne({
+                                where : { id_kadar_upah : kadarUpah.id_kadar_upah}
+                            })
+
+                            if (existInvoice)
+                            {
+                                arrayInv.push("yes");
+                            }
+                            else
+                            {
+                                arrayInv.push("no");
+
+                            }
+                        
+                        }
+
+                        var check = arrayInv.includes("no");
+                        if (!check)
+                        {
+                            //invoice sebelum ni dah hantar, so kena create kadar upah baru utk kontrak sama
+                            await KadarUpahModel.create(dataKadar,{
+                                transaction : transaction
+                            })
+                        }
+                        
+
+
+                    }
+                    
 
                 }
 

@@ -2,8 +2,9 @@ const KadarUpahModel = require("../../models/sequelize/KadarUpah");
 const KadarUpahInvoiceModel = require("../../models/sequelize/KadarUpahInvoice");
 const PenggunaModel = require("../../models/sequelize/User")
 const KontrakModel = require("../../models/sequelize/Kontrak");
-
-
+const TempahanProductionModel = require("../../models/sequelize/TempahanProduction");
+const TempahanUkuranModel = require("../../models/sequelize/TempahanUkuran");
+const TempahanPemakaiModel = require("../../models/sequelize/TempahanPemakai");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const Helper = require("../Helper");
 const { Op } = require("sequelize");
@@ -151,7 +152,77 @@ const KadarUpah = {
                 return res.status(404).send({'message': 'List tidak dijumpai'});
             }
 
+
+            var modifiedList = [];
+
+            var statusSelesaiProd = await Helper.getIdKodKedua("SLS","ref_status_production"); //Selesai
+
+            for (var item of kadarUpahList.rows)
+            {
+                //mapping bilangan tempahan selesai utk setiap kontrak per tukang
+                var conditionProd = {}
+
+                            
+                switch(body.jenis_kerja) {
+                    case "potong":
+                        conditionProd["id_tukang_potong"] = item.id_tukang; 
+                        conditionProd["status_potong"] = statusSelesaiProd; 
+                        break;
+                    case "jahit":             
+                        conditionProd["id_tukang_jahit"] = item.id_tukang; 
+                        conditionProd["status_jahit"] = statusSelesaiProd; 
+                    break;
+                    case "butang":
+                        conditionProd["id_tukang_butang"] = item.id_tukang; 
+                        conditionProd["status_butang"] = statusSelesaiProd; 
+                        break;
+                    case "sulam":
+                        conditionProd["id_tukang_sulam"] = item.id_tukang; 
+                        conditionProd["status_sulam"] = statusSelesaiProd;                         
+                }
+                            
+                var details = await TempahanProductionModel.findAndCountAll({
+                    subQuery: false,
+                    distinct : true,
+                    where : conditionProd,
+                    include : [
+                        {
+                            model : TempahanUkuranModel,
+                            as : "TempahanUkuran",
+                            required : true,
+                            attributes: ["id_tempahan_ukuran","id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
+                            include : [
+                                {
+                                    model : TempahanPemakaiModel,
+                                    as : "Pemakai",
+                                    required : true,
+                                    attributes: { 
+                                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                   },
+                                   include : [
+                                        {
+                                            model : KontrakModel,
+                                            as : "Kontrak",
+                                            required : true, 
+                                            where : { id_kontrak : item.Kontrak.id_kontrak}
+                                        }                                   
+                                    ]
+                                }                                
+                            ]
+                        }   
+                    ]
+                });
+
+
+                item.dataValues.bilangan = details.count
+                modifiedList.push(item);
+            }
+                            
+            kadarUpahList.rows = modifiedList;
+
+
             return res.status(200).send({
+                'jenis_kerja' : body.jenis_kerja,
                 'jenis_kerja_list' : arr_status_cnt,
                 'totalSize' : kadarUpahList.count,
                 'sizePerPage' : pageSize,
@@ -212,6 +283,9 @@ const KadarUpah = {
             if (body.arrayKadarUpah.length>0)
             {
                 var arrayInvoice = []
+
+                var statusSelesaiProd = await Helper.getIdKodKedua("SLS","ref_status_production"); //Selesai
+
                 for (var kadarUpah of body.arrayKadarUpah)
                 {
                     var noInvoice  = await Helper.genRunningNo("invoice")
@@ -233,6 +307,48 @@ const KadarUpah = {
                     await KadarUpahModel.update(dataUpah,{
                         where : { id_kadar_upah : kadarUpah.id_kadar_upah },
                         transaction : transaction 
+                    })
+
+                    //Update production dengan id_kadar_upah
+
+                    var detailUpah = await KadarUpahModel.findOne({
+                        where : {id_kadar_upah : kadarUpah.id_kadar_upah},
+                        include : [
+                            {
+                                model : KodKeduaModel,
+                                as : 'JenisKerja',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']     
+                            },    
+                        ]
+                    })
+
+
+                    var conditionProd = {}
+
+                            
+                    switch(detailUpah.JenisKerja.kod_ref) {
+                        case "PTG":
+                            conditionProd["id_tukang_potong"] = detailUpah.id_tukang; 
+                            conditionProd["status_potong"] = statusSelesaiProd; 
+                            conditionProd["id_kontrak"] = detailUpah.id_kontrak; 
+
+                            break;
+                        case "JHT":             
+                            conditionProd["id_tukang_jahit"] = detailUpah.id_tukang; 
+                            conditionProd["status_jahit"] = statusSelesaiProd; 
+                        break;
+                        case "BTG":
+                            conditionProd["id_tukang_butang"] = detailUpah.id_tukang; 
+                            conditionProd["status_butang"] = statusSelesaiProd; 
+                            break;
+                        case "SLM":
+                            conditionProd["id_tukang_sulam"] = detailUpah.id_tukang; 
+                            conditionProd["status_sulam"] = statusSelesaiProd;                         
+                    }                    
+                                
+                    var existProd = await TempahanProductionModel.findOne({
+
                     })
 
                 }
