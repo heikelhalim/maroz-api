@@ -921,7 +921,8 @@ const Production = {
                     var dataKadar = {
                         "id_kontrak" : detailProd.TempahanUkuran.Pemakai.Kontrak.id_kontrak,
                         "id_jenis_kerja" : jenisProduction,
-                        "id_tukang" : idTukang
+                        "id_tukang" : idTukang,
+                        "id_status" : await Helper.getIdKodKedua("DRF","ref_status_kiraan_upah")
                     }
 
                     var existKadarUpah = await KadarUpahModel.findAll({
