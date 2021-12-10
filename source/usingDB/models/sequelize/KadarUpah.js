@@ -13,11 +13,15 @@ const Pengguna = PenggunaModel(sequelize.sequelizeConn, seqlib);
 const KodKeduaModel = require('../../models/define/KodKedua');
 const KodKedua = KodKeduaModel(sequelize.sequelizeConn, seqlib);
 
+const KadarUpahInvoiceModel = require('../../models/define/KadarUpahInvoice');
+const KadarUpahInvoice = KadarUpahInvoiceModel(sequelize.sequelizeConn, seqlib);
+
 
 KadarUpah.belongsTo(Kontrak, {foreignKey: 'id_kontrak', targetKey: 'id_kontrak', as: 'Kontrak'});
 KadarUpah.belongsTo(Pengguna, {foreignKey: 'id_tukang', targetKey: 'id_pengguna', as: 'Tukang'});
 KadarUpah.belongsTo(KodKedua, {foreignKey: 'id_jenis_kerja', targetKey: 'id_kod_kedua', as: 'JenisKerja'});
 KadarUpah.belongsTo(KodKedua, {foreignKey: 'id_status', targetKey: 'id_kod_kedua', as: 'Status'});
+KadarUpah.hasOne(KodKedua, {foreignKey: 'id_kadar_upah', targetKey: 'id_kadar_upah', as: 'Invoice'});
 
 
 module.exports = KadarUpah;

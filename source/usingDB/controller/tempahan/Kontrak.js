@@ -1166,6 +1166,7 @@ const Kontrak = {
 
                                 var dataProd = {
                                     "id_tempahan_ukuran" : tempahan.id_tempahan_ukuran,
+                                    "id_kontrak" : req.body.id_kontrak,
                                     "barcode" : barcode,
                                     "status_potong" : await Helper.getIdKodKedua("BEA", 'ref_status_production'),
                                     "is_potong" : true,
@@ -1224,7 +1225,17 @@ const Kontrak = {
                             var tempukuran = await TempahanUkuranModel.findByPk(idtempahan,{
                                 attributes: { 
                                     exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                                    },
+                                },
+                                include : [
+                                    {
+                                        model : TempahanPemakaiModel,
+                                        as : "Pemakai",
+                                        required : true,
+                                        attributes: { 
+                                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                       }
+                                    }
+                                ]
                             })
 
                             //check if tempahan ni dah create kat production
@@ -1251,6 +1262,7 @@ const Kontrak = {
 
                                         var dataProd = {
                                             "id_tempahan_ukuran" : tempukuran.id_tempahan_ukuran,
+                                            "id_kontrak" : tempukuran.Pemakai.id_kontrak,
                                             "barcode" : barcode,
                                             "status_potong" : await Helper.getIdKodKedua("BEA", 'ref_status_production'),
                                             "is_potong" : true,

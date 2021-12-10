@@ -891,14 +891,7 @@ const Production = {
                     data["status_packaging"] = statusSelesai;
                     data["tarikh_akhir_packaging"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                    
                 }
-
-
-                
-                await TempahanProductionModel.update(data,{
-                    where : { barcode : req.body.barcode },
-                    transaction : transaction
-                });   
-
+    
 
                 //Kiraan upah tukang
                 if (flowProduction != "packaging" || flowProduction == "qc"){
@@ -932,16 +925,27 @@ const Production = {
                     }
 
                     var existKadarUpah = await KadarUpahModel.findAll({
-                        where : dataKadar
+                        where : dataKadar,
+                        // include  : [
+                        //     {                                
+                        //         model : PenggunaModel,
+                        //         as : 'Staf',
+                        //         required : true,
+                        //         attributes: ['nama']                   
+                        //     }
+                        // ]
                     });
 
                 
                     if (existKadarUpah.length<0)
                     {
                         //create kadar upah
-                        await KadarUpahModel.create(dataKadar,{
+                        var respondUpah = await KadarUpahModel.create(dataKadar,{
                             transaction : transaction
                         })
+
+                        //Update kadar upah kat table prod balik
+                        data["id_kadar_upah"] = respondUpah.id_kadar_upah
                     }
                     else
                     {
@@ -962,6 +966,7 @@ const Production = {
                             else
                             {
                                 arrayInv.push("no");
+                                data["id_kadar_upah"] = kadarUpah.id_kadar_upah
 
                             }
                         
@@ -971,9 +976,11 @@ const Production = {
                         if (!check)
                         {
                             //invoice sebelum ni dah hantar, so kena create kadar upah baru utk kontrak sama
-                            await KadarUpahModel.create(dataKadar,{
+                            var respondBaru = await KadarUpahModel.create(dataKadar,{
                                 transaction : transaction
                             })
+
+                            data["id_kadar_upah"] = respondBaru.id_kadar_upah
                         }
                         
 
@@ -983,6 +990,10 @@ const Production = {
 
                 }
 
+                await TempahanProductionModel.update(data,{
+                    where : { barcode : req.body.barcode },
+                    transaction : transaction
+                });   
 
 
                 await transaction.commit();

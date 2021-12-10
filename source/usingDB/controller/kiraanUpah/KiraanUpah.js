@@ -160,57 +160,29 @@ const KadarUpah = {
             for (var item of kadarUpahList.rows)
             {
                 //mapping bilangan tempahan selesai utk setiap kontrak per tukang
-                var conditionProd = {}
+                // var conditionProd = {}
 
                             
-                switch(body.jenis_kerja) {
-                    case "potong":
-                        conditionProd["id_tukang_potong"] = item.id_tukang; 
-                        conditionProd["status_potong"] = statusSelesaiProd; 
-                        break;
-                    case "jahit":             
-                        conditionProd["id_tukang_jahit"] = item.id_tukang; 
-                        conditionProd["status_jahit"] = statusSelesaiProd; 
-                    break;
-                    case "butang":
-                        conditionProd["id_tukang_butang"] = item.id_tukang; 
-                        conditionProd["status_butang"] = statusSelesaiProd; 
-                        break;
-                    case "sulam":
-                        conditionProd["id_tukang_sulam"] = item.id_tukang; 
-                        conditionProd["status_sulam"] = statusSelesaiProd;                         
-                }
+                // switch(body.jenis_kerja) {
+                //     case "potong":
+                //         conditionProd["id_tukang_potong"] = item.id_tukang; 
+                //         conditionProd["status_potong"] = statusSelesaiProd; 
+                //         break;
+                //     case "jahit":             
+                //         conditionProd["id_tukang_jahit"] = item.id_tukang; 
+                //         conditionProd["status_jahit"] = statusSelesaiProd; 
+                //     break;
+                //     case "butang":
+                //         conditionProd["id_tukang_butang"] = item.id_tukang; 
+                //         conditionProd["status_butang"] = statusSelesaiProd; 
+                //         break;
+                //     case "sulam":
+                //         conditionProd["id_tukang_sulam"] = item.id_tukang; 
+                //         conditionProd["status_sulam"] = statusSelesaiProd;                         
+                // }
                             
                 var details = await TempahanProductionModel.findAndCountAll({
-                    subQuery: false,
-                    distinct : true,
-                    where : conditionProd,
-                    include : [
-                        {
-                            model : TempahanUkuranModel,
-                            as : "TempahanUkuran",
-                            required : true,
-                            attributes: ["id_tempahan_ukuran","id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
-                            include : [
-                                {
-                                    model : TempahanPemakaiModel,
-                                    as : "Pemakai",
-                                    required : true,
-                                    attributes: { 
-                                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                                   },
-                                   include : [
-                                        {
-                                            model : KontrakModel,
-                                            as : "Kontrak",
-                                            required : true, 
-                                            where : { id_kontrak : item.Kontrak.id_kontrak}
-                                        }                                   
-                                    ]
-                                }                                
-                            ]
-                        }   
-                    ]
+                    where : { id_kadar_upah : item.id_kadar_upah },
                 });
 
 
@@ -307,48 +279,6 @@ const KadarUpah = {
                     await KadarUpahModel.update(dataUpah,{
                         where : { id_kadar_upah : kadarUpah.id_kadar_upah },
                         transaction : transaction 
-                    })
-
-                    //Update production dengan id_kadar_upah
-
-                    var detailUpah = await KadarUpahModel.findOne({
-                        where : {id_kadar_upah : kadarUpah.id_kadar_upah},
-                        include : [
-                            {
-                                model : KodKeduaModel,
-                                as : 'JenisKerja',
-                                required : true,
-                                attributes: ['kod_ref','keterangan']     
-                            },    
-                        ]
-                    })
-
-
-                    var conditionProd = {}
-
-                            
-                    switch(detailUpah.JenisKerja.kod_ref) {
-                        case "PTG":
-                            conditionProd["id_tukang_potong"] = detailUpah.id_tukang; 
-                            conditionProd["status_potong"] = statusSelesaiProd; 
-                            conditionProd["id_kontrak"] = detailUpah.id_kontrak; 
-
-                            break;
-                        case "JHT":             
-                            conditionProd["id_tukang_jahit"] = detailUpah.id_tukang; 
-                            conditionProd["status_jahit"] = statusSelesaiProd; 
-                        break;
-                        case "BTG":
-                            conditionProd["id_tukang_butang"] = detailUpah.id_tukang; 
-                            conditionProd["status_butang"] = statusSelesaiProd; 
-                            break;
-                        case "SLM":
-                            conditionProd["id_tukang_sulam"] = detailUpah.id_tukang; 
-                            conditionProd["status_sulam"] = statusSelesaiProd;                         
-                    }                    
-                                
-                    var existProd = await TempahanProductionModel.findOne({
-
                     })
 
                 }
