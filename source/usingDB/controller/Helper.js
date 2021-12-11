@@ -41,8 +41,8 @@ const Helper = {
       });
 
 
-      console.log("TEST"); 
-      console.log("next_num: "+tmp_next_num[0].nextval);
+      // console.log("TEST"); 
+      // console.log("next_num: "+tmp_next_num[0].nextval);
       var next_num = tmp_next_num[0].nextval
       
       var n = next_num.toString().length

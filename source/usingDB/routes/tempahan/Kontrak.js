@@ -7,6 +7,8 @@ const Kontrak = require("../../controller/tempahan/Kontrak");
 router.post('/kontrak/create',Auth.verifyToken,  Kontrak.create);
 router.post('/kontrak/list',Auth.verifyToken,  Kontrak.getList);
 router.get('/kontrak/view/:id', Auth.verifyToken, Kontrak.getDetails);
+router.get('/kontrak/genNoKontrak/:id',Auth.verifyToken,  Kontrak.generateNoKontrak);
+
 router.delete('/kontrak/deletekontrak/:id', Auth.verifyToken, Kontrak.deleteKontrak);
 
 

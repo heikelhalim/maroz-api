@@ -62,7 +62,9 @@ const Kontrak = {
                 // "tarikh_sulam_butang" : req.body.tarikh_sulam_butang || null,
                 // "is_partial_delivery" : req.body.is_partial_delivery,
                 "bilangan_hari" : req.body.bilangan_hari,
-                "id_status_proses_kontrak" : await Helper.getIdKodKedua("DRFT", 'ref_status_proses_kontrak')
+                "id_status_proses_kontrak" : await Helper.getIdKodKedua("DRFT", 'ref_status_proses_kontrak'),
+                "kiraan" : req.body.kiraan,
+                "tahun" : req.body.tahun
             };
 
 
@@ -1308,6 +1310,65 @@ const Kontrak = {
         } catch (error) {
             console.log(error);
             return res.status(400).send(error);
+        }
+    },
+
+    async generateNoKontrak(req,res){
+        try {
+            
+            var currentYear = moment(new Date()).format('YYYY');
+            
+            var existKontrak = await KontrakModel.findAll({
+                where : {
+                    tahun : currentYear,
+                    id_syarikat : req.params.id
+                },
+                attributes : ['kod_kontrak','tahun','kiraan'],
+                limit : 1,
+                order : [['kiraan', 'DESC']]
+            })
+
+            var syarikat = await SyarikatModel.findOne({
+                where : {id_syarikat : req.params.id}
+            });
+
+            var runningNo = "";
+
+            var intergerNo;
+
+            if (existKontrak.length==0)
+            {
+                //tiada kontrak pada tahun tersebut, create no kontrak pertama
+                runningNo = syarikat.kod_syarikat+"/"+currentYear+"/"+"01";
+                intergerNo  = 1;
+            }
+            else
+            {
+                
+                var newNo = existKontrak[0].kiraan + 1;
+                intergerNo = newNo;
+                
+                var n  = newNo.toString().length;
+
+                for (var i=0; i < 2-n ; i++)
+                {
+                    newNo = "0"+newNo;
+                }
+
+                runningNo = syarikat.kod_syarikat+"/"+currentYear+"/"+newNo;
+
+
+            }
+
+            return res.status(200).send({ 
+                "no_kontrak" : runningNo,
+                "tahun" : currentYear,
+                "kiraan" : intergerNo
+            });
+
+
+        } catch (error) {
+            return false;
         }
     }
 
