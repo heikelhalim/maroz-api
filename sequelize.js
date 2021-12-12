@@ -19,6 +19,8 @@ var sequelizeConn = new Sequelize(process.env.DATABASE_URL, {
 * Dont push any changers here. Please git ignored this file
 */
 
+// Testing tambah
+
 /* shh-tunnel start */
 // var config = {        
 //     user:'heikel', // remote server username  
