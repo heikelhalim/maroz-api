@@ -900,22 +900,19 @@ const Production = {
 
                     var idTukang = "";
 
-                    if (flowProduction == "potong")
-                    {
-                        idTukang = detailProd.id_tukang_potong
-                    }
-                    else  if (flowProduction == "jahit")
-                    {
-                        idTukang = detailProd.id_tukang_jahit
-                    }
-                    else  if (flowProduction == "butang")
-                    {
-                        idTukang = detailProd.id_tukang_butang
-                    }
-                    else  if (flowProduction == "sulam")
-                    {
-                        idTukang = detailProd.id_tukang_sulam
-                    }
+                    switch(flowProduction) {
+                        case "potong":
+                            idTukang = detailProd.id_tukang_potong
+                            break;
+                        case "jahit":             
+                            idTukang = detailProd.id_tukang_jahit
+                            break;
+                        case "butang":
+                            idTukang = detailProd.id_tukang_butang
+                            break;
+                        case "sulam":
+                            idTukang = detailProd.id_tukang_sulam
+                    }                    
 
 
                     //check kadar upah per kontrak dah create ke belum
@@ -947,7 +944,22 @@ const Production = {
                         })
 
                         //Update kadar upah kat table prod balik
-                        data["id_kadar_upah"] = respondUpah.id_kadar_upah
+                        switch(flowProduction) {
+                            case "potong":
+                                data["id_kadar_upah_potong"] = respondUpah.id_kadar_upah
+                                break;
+                            case "jahit":             
+                                data["id_kadar_upah_jahit"] = respondUpah.id_kadar_upah
+                                break;
+                            case "butang":
+                                data["id_kadar_upah_butang"] = respondUpah.id_kadar_upah
+                                break;
+                            case "sulam":
+                                data["id_kadar_upah_sulam"] = respondUpah.id_kadar_upah
+                        }
+
+
+
                     }
                     else
                     {
@@ -968,8 +980,6 @@ const Production = {
                             else
                             {
                                 arrayInv.push("no");
-                                data["id_kadar_upah"] = kadarUpah.id_kadar_upah
-
                             }
                         
                         }
@@ -982,7 +992,19 @@ const Production = {
                                 transaction : transaction
                             })
 
-                            data["id_kadar_upah"] = respondBaru.id_kadar_upah
+                            switch(flowProduction) {
+                                case "potong":
+                                    data["id_kadar_upah_potong"] = respondBaru.id_kadar_upah
+                                    break;
+                                case "jahit":             
+                                    data["id_kadar_upah_jahit"] = respondBaru.id_kadar_upah
+                                    break;
+                                case "butang":
+                                    data["id_kadar_upah_butang"] = respondBaru.id_kadar_upah
+                                    break;
+                                case "sulam":
+                                    data["id_kadar_upah_sulam"] = respondBaru.id_kadar_upah
+                            }                            
                         }
                         
 

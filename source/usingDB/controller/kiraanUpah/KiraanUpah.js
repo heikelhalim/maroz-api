@@ -160,29 +160,33 @@ const KadarUpah = {
             for (var item of kadarUpahList.rows)
             {
                 //mapping bilangan tempahan selesai utk setiap kontrak per tukang
-                // var conditionProd = {}
+                var conditionProd = {}
 
                             
-                // switch(body.jenis_kerja) {
-                //     case "potong":
-                //         conditionProd["id_tukang_potong"] = item.id_tukang; 
-                //         conditionProd["status_potong"] = statusSelesaiProd; 
-                //         break;
-                //     case "jahit":             
-                //         conditionProd["id_tukang_jahit"] = item.id_tukang; 
-                //         conditionProd["status_jahit"] = statusSelesaiProd; 
-                //     break;
-                //     case "butang":
-                //         conditionProd["id_tukang_butang"] = item.id_tukang; 
-                //         conditionProd["status_butang"] = statusSelesaiProd; 
-                //         break;
-                //     case "sulam":
-                //         conditionProd["id_tukang_sulam"] = item.id_tukang; 
-                //         conditionProd["status_sulam"] = statusSelesaiProd;                         
-                // }
+                switch(body.jenis_kerja) {
+                    case "potong":
+                        conditionProd["id_kadar_upah_potong"] = item.id_kadar_upah; 
+                        // conditionProd["id_tukang_potong"] = item.id_tukang; 
+                        // conditionProd["status_potong"] = statusSelesaiProd; 
+                        break;
+                    case "jahit":             
+                        conditionProd["id_kadar_upah_jahit"] = item.id_kadar_upah; 
+                        // conditionProd["id_tukang_jahit"] = item.id_tukang; 
+                        // conditionProd["status_jahit"] = statusSelesaiProd; 
+                    break;
+                    case "butang":
+                        conditionProd["id_kadar_upah_butang"] = item.id_kadar_upah; 
+                        // conditionProd["id_tukang_butang"] = item.id_tukang; 
+                        // conditionProd["status_butang"] = statusSelesaiProd; 
+                        break;
+                    case "sulam":
+                        conditionProd["id_kadar_upah_sulam"] = item.id_kadar_upah;                         
+                        // conditionProd["id_tukang_sulam"] = item.id_tukang; 
+                        // conditionProd["status_sulam"] = statusSelesaiProd;                         
+                }
                             
                 var details = await TempahanProductionModel.findAndCountAll({
-                    where : { id_kadar_upah : item.id_kadar_upah },
+                    where : conditionProd,
                 });
 
 
