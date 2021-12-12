@@ -935,9 +935,13 @@ const Production = {
                         // ]
                     });
 
+                    // console.log(existKadarUpah);
+
                 
                     if (existKadarUpah.length<0)
                     {
+                        // console.log("FIRST TIME");
+
                         //create kadar upah
                         var respondUpah = await KadarUpahModel.create(dataKadar,{
                             transaction : transaction
@@ -963,6 +967,8 @@ const Production = {
                     }
                     else
                     {
+                        // console.log("SECOND TIME");
+
                         //check dah create invoice ke. kalau belum tak perlu
                         var arrayInv = [];
 
@@ -980,11 +986,29 @@ const Production = {
                             else
                             {
                                 arrayInv.push("no");
+                                switch(flowProduction) {
+                                    case "potong":
+                                        data["id_kadar_upah_potong"] = kadarUpah.id_kadar_upah
+                                        break;
+                                    case "jahit":             
+                                        data["id_kadar_upah_jahit"] = kadarUpah.id_kadar_upah
+                                        break;
+                                    case "butang":
+                                        data["id_kadar_upah_butang"] = kadarUpah.id_kadar_upah
+                                        break;
+                                    case "sulam":
+                                        data["id_kadar_upah_sulam"] = kadarUpah.id_kadar_upah
+                                }                                         
                             }
                         
                         }
 
                         var check = arrayInv.includes("no");
+
+                        // arrayInv
+                        // console.log("check:"+arrayInv);
+                        // console.log("check:"+check);
+
                         if (!check)
                         {
                             //invoice sebelum ni dah hantar, so kena create kadar upah baru utk kontrak sama
