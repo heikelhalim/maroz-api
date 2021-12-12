@@ -698,7 +698,7 @@ const Production = {
 
             }
             else if (flowProduction == "jahit")
-            {
+            {  
                 filter["status_jahit"] = statusSelesai;
                 jenisProduction = await Helper.getIdKodKedua("JHT", 'ref_jenis_production')                 
             }
@@ -894,8 +894,9 @@ const Production = {
     
 
                 //Kiraan upah tukang
-                if (flowProduction != "packaging" || flowProduction == "qc"){
+                if (flowProduction == "potong" || flowProduction == "jahit" || flowProduction == "butang" || flowProduction == "sulam"){
                 
+                    console.log("test");
 
                     var idTukang = "";
 
