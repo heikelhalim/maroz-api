@@ -19,6 +19,8 @@ router.get('/kontrak/tempahan/detailspemakai/:id',Auth.verifyToken,  Kontrak.get
 router.post('/kontrak/tempahan/listpemakai',Auth.verifyToken,  Kontrak.getListPemakaiKontrak);
 
 router.post('/kontrak/tempahan/createtempahan',Auth.verifyToken,  Kontrak.createTempahan);
+router.delete('/kontrak/tempahan/delete', Auth.verifyToken, Kontrak.deleteTempahan);
+
 router.post('/kontrak/tempahan/listtempahanpemakai',Auth.verifyToken,  Kontrak.getListTempahanPemakai);
 
 router.post('/kontrak/tempahan/hantar',Auth.verifyToken,  Kontrak.hantarTempahan);

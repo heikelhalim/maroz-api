@@ -789,6 +789,44 @@ const Kontrak = {
         }
     },
 
+    async deleteTempahan(req, res) {
+        try {
+
+
+
+            if (req.body.tempahans.length>0)
+            {
+
+                const transaction = await TempahanUkuranModel.sequelize.transaction();
+
+                for (var tempahan of req.body.tempahans)
+                {
+    
+                    //Delete All Tempahan Ukuran
+
+                    
+                    const delTempahan = await TempahanUkuranModel.destroy({
+                        where : {
+                            "id_tempahan_ukuran" : tempahan.id_tempahan_ukuran
+                        },
+                        force : true,
+                        transaction : transaction
+                    });
+                    
+                }
+
+                await transaction.commit();
+            }
+
+
+            return res.status(200).send({ status : "delete" });
+        } catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+
     async getListTempahanPemakai(req, res) {
         try {
 
