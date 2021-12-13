@@ -457,7 +457,7 @@ const Kontrak = {
 
             var body = req.body;
 
-            console.log(body);
+
             var data = { 
                 "nama" : body.nama,
                 "no_kpstaff" : body.no_kpstaff,
@@ -1017,50 +1017,44 @@ const Kontrak = {
     async deletePemakaiKontrak(req, res) {
         try {
 
-            const transaction = await TempahanPemakaiModel.sequelize.transaction();
 
 
-            for (var pemakai of req.body.pemakai)
+            if (req.body.pemakai.length>0)
             {
 
-                var maklumatPemakaiKontrak = await TempahanPemakaiModel.findOne({
-                    where : {
-                        "id_pemakai" : pemakai.id_pemakai,
-                        "id_kontrak" : req.body.id_kontrak
-                    },
-                    attributes: { 
-                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                const transaction = await TempahanPemakaiModel.sequelize.transaction();
+
+                for (var pemakai of req.body.pemakai)
+                {
+    
+                    //Delete All Tempahan Ukuran
+
+                    
+                    const delTempahan = await TempahanUkuranModel.destroy({
+                        where : {
+                            "id_pemakai_tempahan" : pemakai.id_pemakai_tempahan
                         },
+                        force : true,
+                        transaction : transaction
                     });
+    
+    
+                    //Delete Pemakai assigne to kontrak
+    
+                    const delPemakai = await TempahanPemakaiModel.destroy({
+                        where : {
+                            "id_pemakai_tempahan" : pemakai.id_pemakai_tempahan
+                        },
+                        force : true,
+                        transaction : transaction
+                    });
+                    
+                }
 
-
-
-                //Delete All Tempahan Ukuran
-                
-                const delTempahan = await TempahanUkuranModel.destroy({
-                    where : {
-                        "id_pemakai_tempahan" : maklumatPemakaiKontrak.id_pemakai_tempahan
-                    },
-                    force : true,
-                    transaction : transaction
-                });
-
-
-                //Delete Pemakai assigne to kontrak
-
-                const delPemakai = await TempahanPemakaiModel.destroy({
-                    where : {
-                        "id_pemakai_tempahan" : maklumatPemakaiKontrak.id_pemakai_tempahan
-                    },
-                    force : true,
-                    transaction : transaction
-                });
-                
-                console.log("DELETE");
-
+                await transaction.commit();
             }
 
-            await transaction.commit();
+
             return res.status(200).send({ status : "delete" });
         } catch(error) {
             console.log(error);
