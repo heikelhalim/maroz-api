@@ -116,7 +116,8 @@ const Syarikat = {
                     {                                
                         model : KontrakModel,
                         as : 'CheckKontrak',
-                        required : false              
+                        required : false,     
+                        limit : 1         
                     },
                 ]
 

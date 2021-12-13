@@ -15,7 +15,7 @@ const Kontrak = KontrakModel(sequelize.sequelizeConn, seqlib);
 // Pengguna Relationship
 Syarikat.belongsTo(KodKedua, {foreignKey: 'id_negeri', targetKey: 'id_kod_kedua', as: 'Negeri'});
 Syarikat.belongsTo(KodKedua, {foreignKey: 'id_jenis_perniagaan', targetKey: 'id_kod_kedua', as: 'JenisPerniagaan'});
-Syarikat.hasOne(Kontrak, {foreignKey: 'id_syarikat', targetKey: 'id_syarikat', as: 'CheckKontrak'});
+Syarikat.hasMany(Kontrak, {foreignKey: 'id_syarikat', targetKey: 'id_syarikat', as: 'CheckKontrak'});
 
 
 
