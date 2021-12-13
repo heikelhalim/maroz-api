@@ -8,4 +8,7 @@ router.post('/syarikat/create', Auth.verifyToken,  Syarikat.create);
 router.post('/syarikat/list', Auth.verifyToken,  Syarikat.getList);
 router.get('/syarikat/view/:id', Auth.verifyToken,  Syarikat.getDetails);
  
+router.delete('/syarikat/delete/:id', Auth.verifyToken, Syarikat.delete);
+
+
  module.exports = router;

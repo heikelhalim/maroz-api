@@ -1,6 +1,8 @@
 const SyarikatModel = require("../../models/sequelize/Syarikat");
 const KodKeduaModel = require("../../models/sequelize/KodKedua");
 const Helper = require("../../controller/Helper");
+const KontrakModel = require("../../models/sequelize/Kontrak");
+
 const { Op } = require("sequelize");
 const { moment } = require("moment");
 
@@ -110,6 +112,13 @@ const Syarikat = {
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),    
                 order : [['id_syarikat', 'DESC']],
+                include : [
+                    {                                
+                        model : KontrakModel,
+                        as : 'CheckKontrak',
+                        required : false              
+                    },
+                ]
 
             });
                             
@@ -162,6 +171,30 @@ const Syarikat = {
             return res.status(400).send(error);
         }
     },
+    
+    async delete(req, res) {
+        try {
+
+            const transaction = await SyarikatModel.sequelize.transaction();
+
+            //Delete 
+            const delSykt = await SyarikatModel.destroy({
+                where : {
+                    "id_syarikat" : req.params.id
+                },
+                force : true,
+                transaction : transaction
+            });
+                
+
+            await transaction.commit();
+            return res.status(200).send({ status : "delete" });
+        } catch(error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
 
 }
 
