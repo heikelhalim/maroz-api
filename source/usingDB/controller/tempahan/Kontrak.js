@@ -742,9 +742,9 @@ const Kontrak = {
                 "sz_baju" : body.sz_baju,
                 "sz_blok_id" : body.sz_blok_id,
                 "sz_seluar" : body.sz_seluar,
-                "sz_armhole" : body.sz_seluar,
-                "sz_lengan" : body.sz_seluar,
-                "sz_kaf" : body.sz_seluar,
+                "sz_armhole" : body.sz_armhole,
+                "sz_lengan" : body.sz_lengan,
+                "sz_kaf" : body.sz_kaf,
 
                 "nota" : body.nota
             };
