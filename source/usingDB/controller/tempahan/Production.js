@@ -603,7 +603,7 @@ const Production = {
 
             var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/barcode.html'), 'utf8');
 
-            var canvas = createCanvas();
+            var canvas = createCanvas(); 
             
             var htmlfrag = "";
             var format = "";
@@ -635,7 +635,7 @@ const Production = {
             // JsBarcode(canvas, "Hello"); 
             // canvas = createCanvas();
             // JsBarcode(canvas, "OHAYO"); 
-
+            html = html.replace('{barcode_data}', "Maroz Tailoring Barcode");
 
             html = html.replace('{barcode_image}', htmlfrag);
 
