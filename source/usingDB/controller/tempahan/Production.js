@@ -639,12 +639,15 @@ const Production = {
 
             html = html.replace('{barcode_image}', htmlfrag);
 
+
             function downloadPdf() {
                 return new Promise((resolve, reject) => {
-                    return pdf.create(html).toStream(function (err, stream) {
+                    return pdf.create(html,options).toStream(function (err, stream) {
                         if (err) return res.send(err);
                         res.type('pdf');
                         stream.pipe(res);
+
+                        // stream.pipe(fs.createWriteStream('./foo.pdf'));                        
                     });
                 }); 
             } 
@@ -668,10 +671,63 @@ const Production = {
     async cetakDesign (req,res) {
         try {
             
-            
+            var dir = process.env.DOCUMENTS+'barcode/';
+            var random = Helper.random();
+            var fileName = 'print_barcode'+random+'.pdf';
+            var filePath = dir+fileName; 
 
+            var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/ukuran.html'), 'utf8');
+
+            //get image
+            var base64str = Production.base64_encode('test.jpg');
+
+
+
+
+
+
+            var count = 3
+
+            var gambar = "";
+            var htmlfrag = "";
+            for (var i = 0; i<count; i++)
+            {
+
+                gambar = '<img src="' + base64str + '"  width="500" height="400"/><br> <p style="page-break-before: always"> ';
+               
+
+                htmlfrag += gambar;
+                
+
+            }
+
+
+
+
+
+            html = html.replace('{image}', htmlfrag);
+
+            var options = { 
+                format: 'Letter' ,
+                type: "pdf"
+            };
+
+            function downloadPdf() {
+                return new Promise((resolve, reject) => {
+                    return pdf.create(html,options).toStream(function (err, stream) {
+                        if (err) return res.send(err);
+                        res.type('pdf');
+                        stream.pipe(res);
+
+                        // stream.pipe(fs.createWriteStream('./foo.pdf'));                        
+                    });
+                }); 
+            } 
+
+            await downloadPdf(html, options, filePath);
 
         } catch (error) {
+            console.log(error)
             return res.status(400).send(error);
         }
     },
@@ -1196,9 +1252,11 @@ const Production = {
             
         }
 
-    }
+    },
 
-
+    base64_encode(file) {
+        return "data:image/gif;base64,"+fs.readFileSync(file, 'base64');
+    },
 
 }
 
