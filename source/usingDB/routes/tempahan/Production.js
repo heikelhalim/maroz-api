@@ -11,8 +11,9 @@ router.post('/production/revertToBelumAgih',Auth.verifyToken,  Production.revert
 router.post('/production/assignPendingToProses',Auth.verifyToken,  Production.assignPendingToProses);
 router.post('/production/assignProsesToSelesai',Auth.verifyToken,  Production.barcodeScanSelesaiProses);
 router.post('/production/printBarcode',Auth.verifyToken,  Production.cetakBarcode);
-router.post('/production/printUkuran',Auth.verifyToken,  Production.cetakDesign);
 
+
+router.post('/production/printUkuran',Auth.verifyToken,  Production.cetakSenaraiUkuranMengikutTukang);
 
 
 

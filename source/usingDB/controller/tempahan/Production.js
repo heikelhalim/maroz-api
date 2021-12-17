@@ -18,7 +18,7 @@ const { createCanvas } = require("canvas");
 const path = require('path');
 const mime = require('mime');
 const fs = require('fs');  
-
+const { Op } = require("sequelize");
 
 const Helper = require("../../controller/Helper");
 const moment = require("moment");
@@ -601,7 +601,7 @@ const Production = {
             var fileName = 'print_barcode'+random+'.pdf';
             var filePath = dir+fileName; 
 
-            var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/barcode.html'), 'utf8');
+            var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/barcode/barcode.html'), 'utf8');
 
             var canvas = createCanvas(); 
             
@@ -726,6 +726,297 @@ const Production = {
 
             await downloadPdf(html, options, filePath);
 
+        } catch (error) {
+            console.log(error)
+            return res.status(400).send(error);
+        }
+    },
+
+    async cetakSenaraiUkuranMengikutTukang(req,res){
+        try {
+
+                /*
+                    Senarai Tempahan
+                    Nama Tukang
+                    Tarikh Cetak
+                    List Senarai Tempahan (Barcode)
+                    Lampiran Ukuran Dan Design
+                */  
+
+                const body = req.body;
+                var attributeTukang = "";
+                var aliasProduction = "";
+                var filterProduction  = {};
+
+                var statusProductionProses = await Helper.getIdKodKedua("PRS","ref_status_production");
+
+                switch(body.flowProduction) {
+                    case "potong":
+                        attributeTukang = "id_tukang_potong"
+                        aliasProduction = "SenaraiPotong"
+                        filterProduction["status_potong"] = statusProductionProses
+                        break;
+                    case "jahit":             
+                        attributeTukang = "id_tukang_jahit"
+                        aliasProduction = "SenaraiJahit"
+                        filterProduction["status_jahit"] = statusProductionProses
+                        break;
+                    case "butang":
+                        attributeTukang = "id_tukang_butang"
+                        aliasProduction = "SenaraiButang"
+                        filterProduction["status_butang"] = statusProductionProses
+                        break;
+                    case "sulam":
+                        attributeTukang = "id_tukang_sulam"
+                        aliasProduction = "SenaraiSulam"
+                        filterProduction["status_sulam"] = statusProductionProses
+                        break;                    
+                    case "qc":
+                        attributeTukang = "id_tukang_qc"
+                        aliasProduction = "SenaraiQC"
+                        filterProduction["status_qc"] = statusProductionProses
+                        break;    
+                    case "packaging":
+                        attributeTukang = "id_tukang_packaging"
+                        aliasProduction = "SenaraiPackaging"
+                        filterProduction["status_packaging"] = statusProductionProses
+                    break;    
+                }       
+
+                //get distinct list tukang 
+                // const listtukang = await TempahanProductionModel.findAll({
+                //     attributes: [
+                //     [attributeTukang,"id_tukang"]
+                //     ],
+                //     where : {"id_tempahan_production" : body.arrayTempahan},
+                //     group: [attributeTukang]
+                // });
+
+                var listTempahanTukang;
+
+                var listtukang = req.body.arrayIdTukang
+
+                //check ada tukang tak
+                if (listtukang.length>0)
+                {
+                    // var arrayIdTukang = []
+                    // for (var tukang of listtukang)
+                    // {
+                    //     arrayIdTukang.push(tukang.dataValues.id_tukang);
+                    // }
+
+                    listTempahanTukang = await PenggunaModel.findAll({
+                        where : { id_pengguna : listtukang },
+                        attributes : ["id_pengguna","nama"],
+                        include: [
+                            {
+                                model : TempahanProductionModel,
+                                as : aliasProduction,
+                                where : filterProduction,
+                                attributes : ["id_tempahan_ukuran","barcode"],
+                                include : [
+                                    {
+                                        model : TempahanUkuranModel,
+                                        as : "TempahanUkuran",
+                                        required : true,
+                                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","kod_tempahan"],
+                                        include : [
+                                            {
+                                                model : TempahanPemakaiModel,
+                                                as : "Pemakai",
+                                                required : true,
+                                                attributes: { 
+                                                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                               },
+                                               include : [
+                                                    {
+                                                        model : KontrakModel,
+                                                        as : "Kontrak",
+                                                        required : true, 
+                                                        attributes : ["kod_kontrak",]               
+                                                    }                                   
+                                               ]
+                                            },
+                                            {
+                                                model : DesignPakaianModel,
+                                                as : 'DesignPakaian',
+                                                attributes: ["kod_design"],
+                                                include : [
+                                                    {                                
+                                                        model : KodKeduaModel,
+                                                        as : 'JenisPakaian',
+                                                        attributes: ['kod_ref','keterangan']                   
+                                                    },
+                                                ]
+                                            }                               
+                                        ]
+                                    }
+                
+                                ]
+                            },
+                        ]
+    
+                    })
+
+                    //mapping  tempahan ukuran
+                    var  modifiedList = [] 
+
+                    for (var detailTempahan of listTempahanTukang)
+                    {
+                        var arrayIdTempahanUkuran = []
+ 
+
+                        for (var tempahan of detailTempahan.SenaraiPotong)
+                        {
+                            arrayIdTempahanUkuran.push(tempahan.id_tempahan_ukuran)
+                        }
+
+                        //distinct id_tempahan_ukuran in array
+                        var uniqueID = [...new Set(arrayIdTempahanUkuran)]
+
+                        var listUkuran = await TempahanUkuranModel.findAll({
+                            where : { id_tempahan_ukuran : uniqueID },
+                            include : [
+                                {
+                                    model : TempahanPemakaiModel,
+                                    as : "Pemakai",
+                                    required : true,
+                                    attributes: { 
+                                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                    },
+                                    include : [
+                                        {
+                                            model : KontrakModel,
+                                            as : "Kontrak",
+                                            required : true, 
+                                            attributes : ["id_kontrak","kod_kontrak"],
+                                            include : [
+                                                {                                
+                                                    model : SyarikatModel,
+                                                    as : 'Syarikat',
+                                                    attributes: ['nama_syarikat','kod_syarikat']                    
+                                                }
+                                            ]               
+                                        }                                                       
+                                    ]
+                                    
+                                },
+                                {
+                                    model : DesignPakaianModel,
+                                    as : 'DesignPakaian',
+                                    attributes: { 
+                                        exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                    },
+                                    include : [
+                                        {                                
+                                            model : KodKeduaModel,
+                                            as : 'JenisPakaian',
+                                            attributes: ['kod_ref','keterangan']                   
+                                        },
+                                    ]
+                                },                                   
+                            ]
+                        })
+ 
+                        detailTempahan.dataValues.DesignUkuran = listUkuran
+
+                        modifiedList.push(detailTempahan)
+
+                    }
+
+                    listTempahanTukang = modifiedList
+ 
+
+                    //html mapping per tukang
+
+                    var htmltukang = "";
+
+                    for (var detailTukang of listTempahanTukang)
+                    {
+                        var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/ukuranDesign/sub_ukuran_list.html'), 'utf8');
+
+                        html = html.replace('{namaTukang}', detailTukang.nama.toUpperCase());
+                        html = html.replace('{jenisKerja}', "KERJA "+ body.flowProduction.toUpperCase());
+                        html = html.replace('{tarikhMulaPotong}', "13/12/2021");
+
+     
+ 
+                        var senaraiTempahan = detailTukang.SenaraiPotong
+                        var senaraiUkuran = detailTukang.dataValues.DesignUkuran
+
+                        //List Tempahan
+                        var listTempahanProd = ""                        
+                        for (var listTempahan of senaraiTempahan)
+                        {
+  
+                            listTempahanProd += "<tr>"
+                            listTempahanProd += "<td>"+listTempahan.barcode+"</td>"
+                            listTempahanProd += "<td>"+listTempahan.TempahanUkuran.kod_tempahan+"</td>"
+                            listTempahanProd += "<td>"+listTempahan.TempahanUkuran.Pemakai.nama+"</td>"
+                            listTempahanProd += "<td>"+listTempahan.TempahanUkuran.Pemakai.Kontrak.kod_kontrak+"</td>"
+                            listTempahanProd += "<td>"+listTempahan.TempahanUkuran.DesignPakaian.kod_design+"</td>"
+                            // listTempahanProd += "<td>"+listTempahan.TempahanUkuran.DesignPakaian.JenisPakaian.keterangan+"</td>"
+                            listTempahanProd += "</tr>"
+ 
+                        }
+  
+                        //Lampiran Ukuran
+                        var str_lampiran = ""
+
+                        for (var lampiran of senaraiUkuran )
+                        {
+      
+                            var htmllampiran = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/ukuranDesign/sub_ukuran_lampiran.html'), 'utf8');
+                            var base64str = Production.base64_encode('test.jpg');  
+
+                            htmllampiran = htmllampiran.replace('{nama_tukang}', detailTukang.nama.toUpperCase());                            
+                            htmllampiran = htmllampiran.replace('{jenis_kerja}',"KERJA "+ body.flowProduction.toUpperCase());                            
+                            htmllampiran = htmllampiran.replace('{image}', base64str);                            
+                            htmllampiran = htmllampiran.replace('{kod_kontrak}', lampiran.Pemakai.Kontrak.kod_kontrak);                            
+                            htmllampiran = htmllampiran.replace('{kod_tempahan}', lampiran.kod_tempahan);
+                            htmllampiran = htmllampiran.replace('{nama_pemakai}', lampiran.Pemakai.nama);
+                            htmllampiran = htmllampiran.replace('{bilangan}', lampiran.bilangan);
+                            htmllampiran = htmllampiran.replace('{kod_design}', lampiran.DesignPakaian.kod_design);
+                            htmllampiran = htmllampiran.replace('{nota}', lampiran.nota);
+
+                            str_lampiran += htmllampiran
+                            
+                        }
+
+
+                        html = html.replace('{listTempahanProd}', listTempahanProd);
+
+                        html = html.replace('{lampiran_sub}', str_lampiran);
+
+                        htmltukang += html
+
+                    }
+
+
+                    var htmlMainUkuran = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/ukuranDesign/main_ukuran.html'), 'utf8');
+                    htmlMainUkuran = htmlMainUkuran.replace('{template}', htmltukang);
+
+ 
+                    var options = { 
+                        // format: 'Letter' , 
+                        type: "pdf",
+                    };
+        
+                    function downloadPdf() {
+                        return new Promise((resolve, reject) => {
+                            return pdf.create(htmlMainUkuran).toStream(function (err, stream) {
+                                if (err) return res.send(err);
+                                res.type('pdf');
+                                stream.pipe(res);               
+                            });
+                        });  
+                    } 
+        
+                    await downloadPdf(htmlMainUkuran, options);
+                }
+
+                return res.status(200).send(listTempahanTukang);
+            
         } catch (error) {
             console.log(error)
             return res.status(400).send(error);
