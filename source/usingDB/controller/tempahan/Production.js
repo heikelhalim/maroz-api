@@ -28,7 +28,6 @@ const Production = {
     async senaraiProduction (req,res) {
         try {
 
-            console.log("test");
             const pageSize = req.body.sizePerPage || 100;
             const page = req.body.page || 1;
 
@@ -221,6 +220,95 @@ const Production = {
 
         } catch (error) {
             console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+    async getStatusCountProduction (req,res) {
+        try {
+
+
+            var flowProduction = req.params.status; // potong,jahit,sulam,butang,qc,packing
+
+            var aliasStatus = "";
+
+            if (flowProduction == "potong")
+            {
+                aliasStatus = "StatusPotong";
+            }
+            else if (flowProduction == "jahit")
+            {
+                aliasStatus = "StatusJahit";
+            }
+            else if (flowProduction == "sulam")
+            {
+                aliasStatus = "StatusSulam";
+            }
+            else if (flowProduction == "butang")
+            {
+                aliasStatus = "StatusButang";
+            }
+            else if (flowProduction == "qc")
+            {
+                aliasStatus = "StatusQC";
+            }
+            else if (flowProduction == "packaging")
+            {
+                aliasStatus = "StatusPackaging";
+            }
+
+
+            const kod_status = ["belumagih","pendingagih","proses","selesai"];
+
+            var kod_kedua = {
+                belumagih : "BEA",
+                pendingagih : "PEA",
+                proses : "PRS",
+                selesai : "SLS"
+            };
+
+            var kod_status_kod = "";
+            var arr_status_cnt = [];
+            
+
+            for (var item of kod_status){  
+                var status_count = {};
+                switch(item) {
+                    case "selesai":
+                        kod_status_kod = kod_kedua.selesai; //hantar
+                        break;
+                    case "proses":             
+                        kod_status_kod = kod_kedua.proses; // selesai
+                        break;
+                    case "pendingagih":
+                        kod_status_kod = kod_kedua.pendingagih; // draft
+                        break;
+                    default:
+                        kod_status_kod = kod_kedua.belumagih; // Baru dan Auto Lulus - Pending Penyemak
+                }
+
+                const showStatus = await TempahanProductionModel.count({
+                    include: [
+                        {
+                            model : KodKeduaModel,
+                            as : aliasStatus,
+                            required : true,
+                            where : {
+                                kod_ref : kod_status_kod
+                            },
+                        },
+                    ]
+                });
+                status_count["status"] = item;
+                status_count["cnt"] = showStatus;
+
+                arr_status_cnt.push(status_count);
+            }              
+
+            
+            return res.status(200).send(arr_status_cnt);
+        } catch (error) {
+            console.log(error)
             return res.status(400).send(error);
         }
     },
