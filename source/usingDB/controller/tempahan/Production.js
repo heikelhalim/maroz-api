@@ -1111,6 +1111,72 @@ const Production = {
         }
     },
 
+    async getListTukangAssign (req, res){
+        try {
+
+            var attributeTukang = ""
+            var filterProduction = {}
+            var statusProductionProses = await Helper.getIdKodKedua("PRS","ref_status_production");
+
+            switch(req.params.flow) {
+                case "potong":
+                    attributeTukang = "id_tukang_potong"
+                    filterProduction["status_potong"] = statusProductionProses
+                    break;
+                case "jahit":             
+                    attributeTukang = "id_tukang_jahit"
+                    filterProduction["status_jahit"] = statusProductionProses
+                    break;
+                case "butang":
+                    attributeTukang = "id_tukang_butang"
+                    filterProduction["status_butang"] = statusProductionProses
+                    break;
+                case "sulam":
+                    attributeTukang = "id_tukang_sulam"
+                    filterProduction["status_sulam"] = statusProductionProses
+                    break;                    
+                case "qc":
+                    attributeTukang = "id_tukang_qc"
+                    filterProduction["status_qc"] = statusProductionProses
+                    break;    
+                case "packaging":
+                    attributeTukang = "id_tukang_packaging"
+                    filterProduction["status_packaging"] = statusProductionProses
+                break;    
+            }     
+
+
+            //get distinct list tukang 
+            const listtukang = await TempahanProductionModel.findAll({
+                attributes: [
+                [attributeTukang,"id_tukang"]
+                ],
+                where : filterProduction,
+                group: [attributeTukang]
+            });
+
+            var arraytukang = []
+            for (var tukang of listtukang)
+            {
+                arraytukang.push(tukang.dataValues.id_tukang)
+                
+            }
+
+
+            var listTempahanTukang = await PenggunaModel.findAll({
+                where : { id_pengguna : arraytukang },
+                attributes : ["id_pengguna","nama"]
+            })
+
+
+            
+            res.status(200).send(listTempahanTukang);
+        } catch (error) {
+            console.log(error)
+            return res.status(400).send(error);
+        }
+    },
+
     async barcodeScanSelesaiProses (req,res) {
         try {
             const transaction = await TempahanProductionModel.sequelize.transaction();

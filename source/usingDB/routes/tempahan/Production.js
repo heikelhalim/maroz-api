@@ -8,6 +8,7 @@ router.post('/production/list',Auth.verifyToken,  Production.senaraiProduction);
 
 router.get('/production/statusCount/:status',Auth.verifyToken,  Production.getStatusCountProduction);
 
+router.get('/production/listTukangAssign/:flow',Auth.verifyToken,  Production.getListTukangAssign);
 
 router.post('/production/detailTempahanPemakai/:id',Auth.verifyToken,  Production.getDetailTempahanPemakai);
 router.post('/production/assignTukang',Auth.verifyToken,  Production.assignTukang);
