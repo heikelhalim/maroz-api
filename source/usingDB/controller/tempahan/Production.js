@@ -18,10 +18,11 @@ const { createCanvas } = require("canvas");
 const path = require('path');
 const mime = require('mime');
 const fs = require('fs');  
-const { Op } = require("sequelize");
+const sequelize = require("sequelize");
 
 const Helper = require("../../controller/Helper");
 const moment = require("moment");
+const TempahanProduction = require("../../models/define/TempahanProduction");
 
 const Production = {
 
@@ -1559,6 +1560,281 @@ const Production = {
             return res.status(400).send(error);
         }
     },
+
+
+    async getListTempahanPackaging(req, res) {
+        try {
+
+
+
+            var statusSelesai = await Helper.getIdKodKedua("SLS", 'ref_status_production')
+            var statusBelumAgih = await Helper.getIdKodKedua("BEA", 'ref_status_production')
+
+
+            var statusPackaging = req.body.statusPackaging;
+
+            var status;
+
+            switch(statusPackaging) {
+                case "belumPacking":
+                    status = statusBelumAgih
+                    break;
+                case "selesaiPacking":             
+                    status = statusSelesai
+                    break;
+                default:
+                    status = [statusBelumAgih,statusSelesai]
+            }
+
+
+            const pageSize = req.body.sizePerPage || 10;
+            const page = req.body.page || 1;
+
+            var listTempahan = await TempahanUkuranModel.findAndCountAll({
+                subQuery: false,
+                distinct : true,
+                limit : pageSize, 
+                offset : Helper.offset(page, pageSize),   
+                where : Helper.filterJoin(req, [
+                    {
+                        model : TempahanUkuranModel,
+                        columnsLike : [
+                            'kod_tempahan'                        
+                        ]
+                    },
+                    {
+                        model : TempahanPemakaiModel,
+                        columnsLike : [
+                            'nama',     
+                            'no_telefon'                   
+                        ],
+                        joinAlias : 'Pemakai'
+                    },
+                    {
+                        model : KontrakModel,
+                        columnsEqual : ['id_kontrak'],
+                        joinAlias : 'Pemakai->Kontrak'
+                    },                    
+                    {
+                        model : DesignPakaianModel,
+                        columnsLike : [
+                            'kod_design'                        
+                        ],
+                        joinAlias : 'DesignPakaian'
+                    },
+
+                ], true),    
+                attributes: [
+                    "id_tempahan_ukuran",
+                    "kod_tempahan",
+                    // "JenisPakaian.keterangan"
+                    [sequelize.fn("COUNT", sequelize.col("Production.id_tempahan_production")), "ProdCount"],
+                    // [sequelize.col("JenisPakaian.keterangan"),'jenis_pakaian']                    
+                ],                             
+                order : [['id_tempahan_ukuran', 'DESC']],      
+                include : [
+                    {
+                        model : TempahanProductionModel,
+                        as : "Production",
+                        attributes: [],
+                        where : { status_packaging : status },
+                    },                        
+                    {
+                        model : TempahanPemakaiModel,
+                        as : "Pemakai",
+                        required : true,
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {
+                                model : KontrakModel,
+                                as : "Kontrak",
+                                required : true, 
+                                attributes : ["id_kontrak","kod_kontrak"],
+                                include : [
+                                    {                                
+                                        model : SyarikatModel,
+                                        as : 'Syarikat',
+                                        attributes: ['nama_syarikat','kod_syarikat']                    
+                                    }
+                                ]               
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'StatusPemakai',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']                   
+                            }                                                           
+                        ]
+                        
+                    },                    
+
+                    {
+                        model : DesignPakaianModel,
+                        as : 'DesignPakaian',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPakaian',
+                                attributes: ['kod_ref','keterangan']                   
+                            },
+                        ]
+                    },                                                       
+                
+                ],
+                group:["tempahanUkuran.id_tempahan_ukuran","DesignPakaian.id_dsgn_pakaian",
+                "DesignPakaian->JenisPakaian.id_kod_kedua","Pemakai.id_pemakai_tempahan","Pemakai->Kontrak.id_kontrak",
+                "Pemakai->Kontrak->Syarikat.id_syarikat","Pemakai->StatusPemakai.id_kod_kedua"],                
+
+            });
+
+            // var listTempahan2 = await TempahanUkuranModel.findAll({
+            //     attributes: [
+            //            "id_tempahan_ukuran",
+            //            [sequelize.fn("COUNT", sequelize.col("Production.id_tempahan_production")), "ProdCount"]
+            //     ],
+            //     include : [
+            //         {
+            //             model : TempahanProductionModel,
+            //             as : "Production",
+            //             attributes: [],
+            //             where : { status_packaging : statusBelumAgih },
+            //         }, 
+            //     ],
+            //     group:["tempahanUkuran.id_tempahan_ukuran"]
+            // })
+
+            return res.status(200).send({                
+                'totalSize' : listTempahan.count.length,
+                'sizePerPage' : pageSize,
+                'page' : page,    
+                'data' : listTempahan.rows,            
+            });
+
+
+            
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+    async getStatusCountPackaging (req,res) {
+        try {
+
+
+            const kod_status = ["belumPacking","selesaiPacking"];
+
+            var kod_kedua = {
+                belumagih : "BEA",
+                selesai : "SLS"
+            };
+
+            var kod_status_kod = "";
+            var arr_status_cnt = [];
+            
+
+            for (var item of kod_status){  
+                var status_count = {};
+                switch(item) {
+                    case "selesaiPacking":
+                        kod_status_kod = kod_kedua.selesai; 
+                        break;
+                    case "belumPacking":
+                        kod_status_kod = kod_kedua.belumagih; 
+                }
+
+                const showStatus = await TempahanProductionModel.count({
+                    include: [
+                        {
+                            model : KodKeduaModel,
+                            as : "StatusPackaging",
+                            required : true,
+                            where : {
+                                kod_ref : kod_status_kod
+                            },
+                        },
+                    ]
+                });
+                status_count["status"] = item;
+                status_count["cnt"] = showStatus;
+
+                arr_status_cnt.push(status_count);
+            }              
+
+            
+            return res.status(200).send(arr_status_cnt);
+        } catch (error) {
+            console.log(error)
+            return res.status(400).send(error);
+        }
+    },
+
+
+    async assignToPackaging(req,res) {
+        try {
+
+            const transaction = await TempahanProductionModel.sequelize.transaction();
+
+            var arrayIdTempahanUkuran = req.body.arrayTempahanUkuran
+            
+            var statusSelesai = await Helper.getIdKodKedua("SLS", 'ref_status_production')
+            var statusBelumAgih = await Helper.getIdKodKedua("BEA", 'ref_status_production')
+
+            var mesej = "";
+            if (arrayIdTempahanUkuran){
+
+                if (arrayIdTempahanUkuran.length>0)
+                {
+
+                    var statusSelesai = await Helper.getIdKodKedua("SLS", 'ref_status_production')
+                 
+                    /*update Prod: 
+                    -status_packaging = selesai
+                    -tarikh_mula_packaging
+                    -tarikh_akhir_packaging 
+
+                    */
+                    const data = {
+                        "status_packaging" : statusSelesai,
+                        "tarikh_mula_packaging" : moment(new Date()).format('YYYY/MM/DD HH:mm:ss'),
+                        "tarikh_akhir_packaging" : moment(new Date()).format('YYYY/MM/DD HH:mm:ss')
+                    }
+
+                    await TempahanProductionModel.update(data,{
+                        where : { 
+                            id_tempahan_ukuran : arrayIdTempahanUkuran,
+                            status_packaging : statusBelumAgih
+
+                        },
+                        transaction : transaction
+                    })
+
+
+
+                    await transaction.commit();
+                    return res.status(200).send({"status": "Tempahan sudah packing"});
+
+    
+                }                 
+            }
+            else
+            {
+                mesej = "no variable declare"
+            }
+
+            return res.status(200).send({"status": mesej});
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send(error);
+        } 
+    },
+
 
     checkButangSulamQc(checkPoint,item)
     {

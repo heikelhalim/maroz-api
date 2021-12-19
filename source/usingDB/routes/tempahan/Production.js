@@ -19,7 +19,11 @@ router.post('/production/printBarcode',Auth.verifyToken,  Production.cetakBarcod
 
 
 router.post('/production/printUkuran',Auth.verifyToken,  Production.cetakSenaraiUkuranMengikutTukang);
+router.post('/production/senaraiPackaging',Auth.verifyToken,  Production.getListTempahanPackaging);
 
+
+router.post('/production/assignToPackaging',Auth.verifyToken,  Production.assignToPackaging);
+router.get('/production/statusCountPacking',Auth.verifyToken,  Production.getStatusCountPackaging);
 
 
 module.exports = router;
