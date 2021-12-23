@@ -1835,6 +1835,162 @@ const Production = {
         } 
     },
 
+    async cetakSenaraiUkuranPacking(req,res){
+        try {
+
+                /*
+                    Senarai Tempahang Packing
+                    Nama Pemakai
+                    Kod Buku
+                    Kontrak
+                    Jawatan
+                    No Telefon
+                    Senarai Tempahan                        
+                */  
+
+                var arrayIdTempahanUkuran = req.body.arrayTempahanUkuran
+                var aliasProduction = "";
+                var filterProduction  = {};
+
+                // var statusProductionProses = await Helper.getIdKodKedua("PRS","ref_status_production");
+
+ 
+                //get distinct list nama pemakai 
+                const listPemakai = await TempahanUkuranModel.findAll({
+                    attributes : ["id_pemakai_tempahan"],
+                    where : { id_tempahan_ukuran : arrayIdTempahanUkuran },
+                    group : ["id_pemakai_tempahan"]
+                });
+
+                var listTempahanPemakai;
+
+                //check ada pemakai tak
+                if (listPemakai.length>0)
+                {
+                    var arrayIdPemakai = []
+                    for (var pemakai of listPemakai)
+                    {
+                        arrayIdPemakai.push(pemakai.dataValues.id_pemakai_tempahan);
+                    }
+
+                    listTempahanPemakai = await TempahanPemakaiModel.findAll({
+                        where : { id_pemakai_tempahan : arrayIdPemakai },
+                        attributes : ["nama","kod_buku","no_telefon","jawatan"],
+                        include: [
+                            {
+                                model : KontrakModel,
+                                as : "Kontrak",
+                                required : true, 
+                                attributes : ["kod_kontrak"]               
+                            },                                                                      
+                            {
+                                model : TempahanUkuranModel,
+                                as : "SenaraiTempahan",
+                                where : { id_tempahan_ukuran : arrayIdTempahanUkuran },
+                                include : [
+                                    {
+                                        model : DesignPakaianModel,
+                                        as : 'DesignPakaian',
+                                        attributes: { 
+                                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                                        },
+                                        include : [
+                                            {                                
+                                                model : KodKeduaModel,
+                                                as : 'JenisPakaian',
+                                                attributes: ['kod_ref','keterangan']                   
+                                            },
+                                        ]
+                                    },  
+                                ]
+                            }
+        
+                        ]
+    
+                    }) 
+
+
+                    //html mapping per Pemakai
+
+                    var htmlPemakai = "";
+
+                    for (var detailPemakai of listTempahanPemakai)
+                    {
+                        var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/senaraiPackaging/sub_tempahan_list.html'), 'utf8');
+
+                        html = html.replace('{namaPemakai}', detailPemakai.nama.toUpperCase());
+                        html = html.replace('{kodBuku}', detailPemakai.kod_buku);
+                        html = html.replace('{kontrak}', detailPemakai.Kontrak.kod_kontrak);
+                        html = html.replace('{jawatan}', detailPemakai.jawatan);
+                        html = html.replace('{notelefon}', detailPemakai.no_telefon);
+
+                        
+ 
+                        var senaraiTempahan = detailPemakai.SenaraiTempahan
+                        //List Tempahan
+                        var listTempahanProd = ""                        
+                        for (var listTempahan of senaraiTempahan)
+                        {
+                            //get count Prod Yg Belum Packaging as for now
+                            var listProdPackaging = await TempahanProductionModel.findAndCountAll({
+                                where : { 
+                                    id_tempahan_ukuran : listTempahan.id_tempahan_ukuran,
+                                    status_packaging : await Helper.getIdKodKedua("BEA", 'ref_status_production')
+                                }
+                            });
+            
+
+  
+                            listTempahanProd += "<tr>"
+                            listTempahanProd += "<td>"+listTempahan.kod_tempahan+"</td>"
+                            listTempahanProd += "<td>"+listTempahan.DesignPakaian.JenisPakaian.keterangan+"</td>"
+                            listTempahanProd += "<td>"+listProdPackaging.count+"</td>"
+                            listTempahanProd += "</tr>"
+ 
+                        }
+  
+ 
+
+
+                        html = html.replace('{listTempahanPackaging}', listTempahanProd);
+
+ 
+                        htmlPemakai += html
+
+                    }
+
+
+                    var htmlMainPemakai = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/senaraiPackaging/main_packaging.html'), 'utf8');
+                    htmlMainPemakai = htmlMainPemakai.replace('{template}', htmlPemakai);
+
+ 
+                    var options = { 
+                        // format: 'Letter' , 
+                        type: "pdf",
+                    };
+        
+                    function downloadPdf() {
+                        return new Promise((resolve, reject) => {
+                            return pdf.create(htmlMainPemakai).toStream(function (err, stream) {
+                                if (err) return res.send(err);
+                                res.type('pdf');
+                                stream.pipe(res);               
+                            });
+                        });  
+                    } 
+        
+                    await downloadPdf(htmlMainPemakai, options);
+                }
+
+                return res.status(200).send(listTempahanTukang);
+            
+        } catch (error) {
+            console.log(error)
+            return res.status(400).send(error);
+        }
+    },
+
+
 
     checkButangSulamQc(checkPoint,item)
     {

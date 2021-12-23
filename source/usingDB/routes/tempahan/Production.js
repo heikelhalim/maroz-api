@@ -24,6 +24,7 @@ router.post('/production/senaraiPackaging',Auth.verifyToken,  Production.getList
 
 router.post('/production/assignToPackaging',Auth.verifyToken,  Production.assignToPackaging);
 router.get('/production/statusCountPacking',Auth.verifyToken,  Production.getStatusCountPackaging);
+router.post('/production/printPackaging',Auth.verifyToken,  Production.cetakSenaraiUkuranPacking);
 
 
 module.exports = router;
