@@ -312,7 +312,7 @@ const DeliveryOrder = {
         }
     },   
     
-    async creatDO (req,res){
+    async createDO (req,res){
       try {
           
         const transaction = await DeliveryOrderModel.sequelize.transaction();
@@ -430,6 +430,40 @@ const DeliveryOrder = {
 
     async detailsDO(req,res){
         try {
+
+
+            
+        } catch (error) {
+            return res.status(400).send(error);
+        }
+    },
+
+    async deleteDO (req,res){
+        try {
+
+            //update id_do in Prod
+            const transaction = await DeliveryOrderModel.sequelize.transaction();
+
+            const data = { id_do : null }
+            
+            await TempahanProductionModel.update(data,{
+                where : { id_do : req.params.id },
+                transaction : transaction
+            })
+
+
+            //Delete DO
+            const delDo = await DeliveryOrderModel.destroy({
+                where : {
+                    "id_do" : req.params.id
+                },
+                force : true,
+                transaction : transaction
+            });
+                
+
+            await transaction.commit();
+            return res.status(200).send({ status : "delete" });
 
 
             
