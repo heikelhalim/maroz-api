@@ -17,6 +17,10 @@ const bodyParser = require("body-parser");
 const { Op } = require("sequelize");
 const sequelize = require("sequelize");
 
+const fs = require('fs');  
+const path = require('path');
+const pdf = require('html-pdf');
+
 const DeliveryOrder = {
 
     async listDO (req,res){
@@ -480,7 +484,181 @@ const DeliveryOrder = {
         } catch (error) {
             return res.status(400).send(error);
         }
-    }
+    },
+
+    async cetakDO(req,res){
+        try {
+
+
+            var infoDO = await DeliveryOrderModel.findByPk(req.params.id,{
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                include : [
+                    {                                
+                        model : KodKeduaModel,
+                        as : 'Status',
+                        attributes: ['kod_ref','keterangan']                   
+                    },
+                    {
+                        model : KontrakModel,
+                        as : "Kontrak",
+                        required : true, 
+                        attributes : ["kod_kontrak","id_kontrak","tajuk_ringkas"],
+                        include : [
+                            {                                
+                                model : SyarikatModel,
+                                as : 'Syarikat',
+                                attributes: ['nama_syarikat','kod_syarikat']                    
+                            },
+                        ]              
+                    }    
+                ]
+
+            });
+
+
+            var listDO = await TempahanUkuranModel.findAll({
+                subQuery: false,
+                distinct : true,
+                attributes: [
+                    "id_tempahan_ukuran",
+                    "kod_tempahan",
+                    // "JenisPakaian.keterangan"
+                    [sequelize.fn("COUNT", sequelize.col("Production.id_tempahan_production")), "ProdCount"],
+                    // [sequelize.col("JenisPakaian.keterangan"),'jenis_pakaian']                    
+                ],                             
+                order : [['id_tempahan_ukuran', 'DESC']],      
+                include : [
+                    {
+                        model : TempahanProductionModel,
+                        as : "Production",
+                        required : true,
+                        attributes: [],
+                        where : { 
+                            id_do : req.params.id,
+                        }
+                    },                        
+                    {
+                        model : TempahanPemakaiModel,
+                        as : "Pemakai",
+                        required : true,
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {
+                                model : KontrakModel,
+                                as : "Kontrak",
+                                required : true, 
+                                // where : { id_kontrak : req.body.id_kontrak },                                
+                                attributes : ["id_kontrak","kod_kontrak"],
+                                include : [
+                                    {                                
+                                        model : SyarikatModel,
+                                        as : 'Syarikat',
+                                        attributes: ['nama_syarikat','kod_syarikat']                    
+                                    }
+                                ]               
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'StatusPemakai',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']                   
+                            }                                                           
+                        ]
+                        
+                    },                    
+                    {
+                        model : DesignPakaianModel,
+                        as : 'DesignPakaian',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPakaian',
+                                attributes: ['kod_ref','keterangan']                   
+                            },
+                        ]
+                    },                                                       
+                
+                ],
+                group:["tempahanUkuran.id_tempahan_ukuran","DesignPakaian.id_dsgn_pakaian",
+                "DesignPakaian->JenisPakaian.id_kod_kedua","Pemakai.id_pemakai_tempahan","Pemakai->Kontrak.id_kontrak",
+                "Pemakai->Kontrak->Syarikat.id_syarikat","Pemakai->StatusPemakai.id_kod_kedua"],                
+
+            });            
+
+
+            // return res.status(200).send(listDO);
+
+
+            //html mapping per Pemakai
+
+
+
+            var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/deliveryorder/main_do.html'), 'utf8');
+
+            html = html.replace('{no_do}', infoDO.no_rujukan_do.toUpperCase());
+            html = html.replace('{kontrak}', listDO[0].Pemakai.Kontrak.kod_kontrak);
+            html = html.replace('{syarikat}', listDO[0].Pemakai.Kontrak.Syarikat.nama_syarikat);
+          
+
+            //List Tempahan
+            var listDeliveryOrder = ""                        
+            for (var itemDo of listDO)
+            {
+   
+                var noTelefon = itemDo.Pemakai.no_telefon || '-'
+                var jawatan = itemDo.Pemakai.jawatan || '-'
+ 
+
+                listDeliveryOrder += "<tr>"
+                listDeliveryOrder += "<td>"+itemDo.kod_tempahan+"</td>"
+                listDeliveryOrder += "<td>"+itemDo.Pemakai.nama+"</td>"
+                listDeliveryOrder += "<td>"+jawatan+"</td>"
+                listDeliveryOrder += "<td>"+noTelefon+"</td>"
+                listDeliveryOrder += "<td>"+itemDo.DesignPakaian.JenisPakaian.keterangan+"</td>"
+                listDeliveryOrder += "<td>"+itemDo.dataValues.ProdCount+"</td>"
+                listDeliveryOrder += "</tr>"
+
+            }
+
+
+
+
+            html = html.replace('{listTempahanDO}', listDeliveryOrder);
+
+
+            var options = { 
+                // format: 'Letter' , 
+                type: "pdf",
+            };
+
+                    function downloadPdf() {
+                        return new Promise((resolve, reject) => {
+                            return pdf.create(html).toStream(function (err, stream) {
+                                if (err) return res.send(err);
+                                res.type('pdf');
+                                stream.pipe(res);               
+                            });
+                        });  
+                    } 
+        
+                    await downloadPdf(html, options);
+
+                return res.status(200).send(listTempahanTukang);
+            
+        } catch (error) {
+            console.log(error)
+            return res.status(400).send(error);
+        }
+    },
+
+
 }
 
 

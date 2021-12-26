@@ -8,6 +8,7 @@ router.post('/deliveryorder/listTempahanProdSelesai', Auth.verifyToken,  Deliver
 router.post('/deliveryorder/listDO', Auth.verifyToken,  DeliveryOrder.listDO);
 router.post('/deliveryorder/create', Auth.verifyToken,  DeliveryOrder.createDO);
 router.delete('/deliveryorder/delete/:id', Auth.verifyToken,  DeliveryOrder.deleteDO);
+router.get('/deliveryorder/cetak/:id', Auth.verifyToken,  DeliveryOrder.cetakDO);
 
 
  module.exports = router;
