@@ -917,49 +917,68 @@ const Kontrak = {
                 
             }
 
+            var arrayCondition = [
+                Helper.filterJoin(req, [
+                    {
+                        model : KontrakModel,
+                        columnsLike : [
+                            'kod_kontrak',
+                            'tajuk_kerja'
+                        ],
+                        columnsEqual : ['id_syarikat','id_status']
+                    } 
+                ], true)
+            ]
+
+
             if (req.body.jenisPage == "confirmTempahan")
             {
-                modelPemakai["where"] = { "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai') }
+                // modelPemakai["where"] = { "id_status" : await Helper.getIdKodKedua("BR", 'ref_status_tempahan_pemakai') }
+
+                arrayCondition.push({ is_hantarprod : null })                
             }
 
             const pageSize = req.body.sizePerPage || 10;
             const page = req.body.page || 1;
+
 
             var listTempahan = await TempahanUkuranModel.findAndCountAll({
                 subQuery: false,
                 distinct : true,
                 limit : pageSize, 
                 offset : Helper.offset(page, pageSize),   
-                where : Helper.filterJoin(req, [
-                    {
-                        model : TempahanUkuranModel,
-                        columnsLike : [
-                            'kod_tempahan'                        
-                        ]
-                    },
-                    {
-                        model : TempahanPemakaiModel,
-                        columnsLike : [
-                            'nama',     
-                            'no_telefon'                   
-                        ],
-                        joinAlias : 'Pemakai'
-                    },
-                    {
-                        model : KontrakModel,
-                        columnsEqual : ['id_kontrak'],
-                        joinAlias : 'Pemakai->Kontrak'
-                    },                    
-                    {
-                        model : DesignPakaianModel,
-                        columnsLike : [
-                            'kod_design'                        
-                        ],
-                        joinAlias : 'DesignPakaian'
-                    },
+                // where : Helper.filterJoin(req, [
+                //     {
+                //         model : TempahanUkuranModel,
+                //         columnsLike : [
+                //             'kod_tempahan'                        
+                //         ]
+                //     },
+                //     {
+                //         model : TempahanPemakaiModel,
+                //         columnsLike : [
+                //             'nama',     
+                //             'no_telefon'                   
+                //         ],
+                //         joinAlias : 'Pemakai'
+                //     },
+                //     {
+                //         model : KontrakModel,
+                //         columnsEqual : ['id_kontrak'],
+                //         joinAlias : 'Pemakai->Kontrak'
+                //     },                    
+                //     {
+                //         model : DesignPakaianModel,
+                //         columnsLike : [
+                //             'kod_design'                        
+                //         ],
+                //         joinAlias : 'DesignPakaian'
+                //     },
 
-                ], true),                 
-                order : [['id_kontrak', 'DESC']],                
+                // ], true),                      
+                where : {
+                    [Op.and] : arrayCondition
+                },
                 attributes: { 
                              exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
                 },
@@ -1218,7 +1237,20 @@ const Kontrak = {
 
                                 arr_Tempahan.push(dataProd);                        
                             }
+
+                            //Update status ukuran sudah hantar ke Prod
+                            const dataUpdate = {
+                                is_hantarprod : true
+                            }
+
+                            await TempahanUkuranModel.update(dataUpdate,{
+                                where : { id_tempahan_ukuran : tempahan.id_tempahan_ukuran },
+                                transaction : transaction
+                            })
+
                         }
+
+
 
                         //Update status pemakai baru --> proses
                         var existPemakai = await TempahanPemakaiModel.findByPk(tempahan.id_pemakai_tempahan, {

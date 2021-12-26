@@ -49,6 +49,7 @@ module.exports = (sequelize, type) => {
         sz_lengan : type.DECIMAL,
         sz_kaf : type.DECIMAL,
         nota : type.STRING,
+        is_hantarprod : type.BOOLEAN,
         created_at : type.DATE,
         created_by : type.INTEGER,
         updated_at : type.DATE,
