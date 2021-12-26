@@ -15,6 +15,7 @@ const moment = require("moment");
 const bodyParser = require("body-parser");
 
 const { Op } = require("sequelize");
+const sequelize = require("sequelize");
 
 const DeliveryOrder = {
 
@@ -123,71 +124,178 @@ const DeliveryOrder = {
                 conditionDO = { [Op.is]: null };
             }
 
-            var listProductionSelesai = await TempahanProductionModel.findAndCountAll({
+            // var listProductionSelesai = await TempahanProductionModel.findAndCountAll({
+            //     subQuery: false,
+            //     distinct : true,
+            //     limit : pageSize, 
+            //     where : {
+            //         id_do : conditionDO,
+            //     },
+            //     offset : Helper.offset(page, pageSize),   
+            //     include : [
+            //         {
+            //             model : KodKeduaModel,
+            //             as : "StatusPackaging",
+            //             required : true,
+            //             where : { kod_ref : "SLS" }, //selesai packaging
+            //             attributes: ['kod_ref','keterangan'] 
+            //         },
+            //         {
+            //             model : TempahanUkuranModel,
+            //             as : "TempahanUkuran",
+            //             required : true,
+            //             attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","kod_tempahan"],
+            //             include : [
+            //                 {
+            //                     model : TempahanPemakaiModel,
+            //                     as : "Pemakai",
+            //                     required : true,
+            //                     attributes: { 
+            //                         exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+            //                    },
+            //                    include : [
+            //                         {
+            //                             model : KontrakModel,
+            //                             as : "Kontrak",
+            //                             required : true, 
+            //                             where : { id_kontrak : req.body.id_kontrak},
+            //                             attributes : ["id_kontrak","kod_kontrak",'tajuk_ringkas'],
+            //                             include : [
+            //                                 {                                
+            //                                     model : SyarikatModel,
+            //                                     as : 'Syarikat',
+            //                                     attributes: ['nama_syarikat','kod_syarikat']                    
+            //                                 },
+            //                             ]                 
+            //                         }                                   
+            //                    ]
+            //                 },
+            //                 {
+            //                     model : DesignPakaianModel,
+            //                     as : 'DesignPakaian',
+            //                     attributes: ["kod_design"],
+            //                     include : [
+            //                         {                                
+            //                             model : KodKeduaModel,
+            //                             as : 'JenisPakaian',
+            //                             attributes: ['kod_ref','keterangan']                   
+            //                         },
+            //                     ]
+            //                 }                               
+            //             ]
+            //         }
+
+            //     ],
+            //     order : [['id_tempahan_production', 'DESC']],
+
+            // });
+
+
+            var listProductionSelesai = await TempahanUkuranModel.findAndCountAll({
                 subQuery: false,
                 distinct : true,
                 limit : pageSize, 
-                where : {
-                    id_do : conditionDO,
-                },
                 offset : Helper.offset(page, pageSize),   
-                include : [
-                    {
-                        model : KodKeduaModel,
-                        as : "StatusPackaging",
-                        required : true,
-                        where : { kod_ref : "SLS" }, //selesai packaging
-                        attributes: ['kod_ref','keterangan'] 
-                    },
+                where : Helper.filterJoin(req, [
                     {
                         model : TempahanUkuranModel,
-                        as : "TempahanUkuran",
+                        columnsLike : [
+                            'kod_tempahan'                        
+                        ]
+                    },
+                    {
+                        model : TempahanPemakaiModel,
+                        columnsLike : [
+                            'nama',     
+                            'no_telefon'                   
+                        ],
+                        joinAlias : 'Pemakai'
+                    },
+                    {
+                        model : KontrakModel,
+                        columnsEqual : ['id_kontrak'],
+                        joinAlias : 'Pemakai->Kontrak'
+                    },                    
+                    {
+                        model : DesignPakaianModel,
+                        columnsLike : [
+                            'kod_design'                        
+                        ],
+                        joinAlias : 'DesignPakaian'
+                    },
+
+                ], true),    
+                attributes: [
+                    "id_tempahan_ukuran",
+                    "kod_tempahan",
+                    // "JenisPakaian.keterangan"
+                    [sequelize.fn("COUNT", sequelize.col("Production.id_tempahan_production")), "ProdCount"],
+                    // [sequelize.col("JenisPakaian.keterangan"),'jenis_pakaian']                    
+                ],                             
+                order : [['id_tempahan_ukuran', 'DESC']],      
+                include : [
+                    {
+                        model : TempahanProductionModel,
+                        as : "Production",
                         required : true,
-                        attributes: ["id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","kod_tempahan"],
+                        attributes: [],
+                        where : { 
+                            id_do : conditionDO,
+                            status_packaging : await Helper.getIdKodKedua("SLS", 'ref_status_production')
+                        }
+                    },                        
+                    {
+                        model : TempahanPemakaiModel,
+                        as : "Pemakai",
+                        required : true,
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
                         include : [
                             {
-                                model : TempahanPemakaiModel,
-                                as : "Pemakai",
-                                required : true,
-                                attributes: { 
-                                    exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
-                               },
-                               include : [
-                                    {
-                                        model : KontrakModel,
-                                        as : "Kontrak",
-                                        required : true, 
-                                        where : { id_kontrak : req.body.id_kontrak},
-                                        attributes : ["id_kontrak","kod_kontrak",'tajuk_ringkas'],
-                                        include : [
-                                            {                                
-                                                model : SyarikatModel,
-                                                as : 'Syarikat',
-                                                attributes: ['nama_syarikat','kod_syarikat']                    
-                                            },
-                                        ]                 
-                                    }                                   
-                               ]
-                            },
-                            {
-                                model : DesignPakaianModel,
-                                as : 'DesignPakaian',
-                                attributes: ["kod_design"],
+                                model : KontrakModel,
+                                as : "Kontrak",
+                                required : true, 
+                                where : { id_kontrak : req.body.id_kontrak },                                
+                                attributes : ["id_kontrak","kod_kontrak"],
                                 include : [
                                     {                                
-                                        model : KodKeduaModel,
-                                        as : 'JenisPakaian',
-                                        attributes: ['kod_ref','keterangan']                   
-                                    },
-                                ]
-                            }                               
+                                        model : SyarikatModel,
+                                        as : 'Syarikat',
+                                        attributes: ['nama_syarikat','kod_syarikat']                    
+                                    }
+                                ]               
+                            },
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'StatusPemakai',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']                   
+                            }                                                           
                         ]
-                    }
-
+                        
+                    },                    
+                    {
+                        model : DesignPakaianModel,
+                        as : 'DesignPakaian',
+                        attributes: { 
+                            exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                        },
+                        include : [
+                            {                                
+                                model : KodKeduaModel,
+                                as : 'JenisPakaian',
+                                attributes: ['kod_ref','keterangan']                   
+                            },
+                        ]
+                    },                                                       
+                
                 ],
-                order : [['id_tempahan_production', 'DESC']],
+                group:["tempahanUkuran.id_tempahan_ukuran","DesignPakaian.id_dsgn_pakaian",
+                "DesignPakaian->JenisPakaian.id_kod_kedua","Pemakai.id_pemakai_tempahan","Pemakai->Kontrak.id_kontrak",
+                "Pemakai->Kontrak->Syarikat.id_syarikat","Pemakai->StatusPemakai.id_kod_kedua"],                
 
-            });
+            });            
 
             return res.status(200).send({
                 'totalSize' : listProductionSelesai.count,
@@ -268,14 +376,23 @@ const DeliveryOrder = {
         {
             if (body.listTempahan.length>0)
             {
-                const dataProd = {
-                    "id_do" : deliveryorder.id_do
+                //Get list prod yg 
+
+                for (var id of body.listTempahan)
+                {
+
+                    const dataProd = {
+                        "id_do" : deliveryorder.id_do
+                    }
+        
+                    await TempahanProductionModel.update(dataProd,{
+                        where : { 
+                            id_tempahan_ukuran : id,
+                            status_packaging : await Helper.getIdKodKedua("SLS", 'ref_status_production')
+                        },   
+                        transaction : transaction
+                    })                    
                 }
-    
-                await TempahanProductionModel.update(dataProd,{
-                    where : { id_tempahan_production : body.listTempahan },
-                    transaction : transaction
-                })
     
             }
         }
