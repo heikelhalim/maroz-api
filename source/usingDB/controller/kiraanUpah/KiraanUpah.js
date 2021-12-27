@@ -10,7 +10,9 @@ const Helper = require("../Helper");
 const { Op } = require("sequelize");
 const moment = require("moment");
 
-
+const fs = require('fs');  
+const path = require('path');
+const pdf = require('html-pdf');
 
 const KadarUpah = {
 
@@ -441,6 +443,103 @@ const KadarUpah = {
 
             }catch(error) {
             console.log(error);
+            return res.status(400).send(error);
+        }
+    },
+
+
+    async cetakInvoice(req,res){
+        try {
+
+
+            var detailInvoice = await KadarUpahInvoiceModel.findByPk(req.params.id,{
+                subQuery: false, 
+                distinct : true,
+                attributes: { 
+                             exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
+                },
+                include : [
+                    {
+                        model : KadarUpahModel,
+                        as : 'KadarUpah',
+                        required : true,
+                        include : [
+                            {                                
+                                model : KontrakModel,
+                                as : 'Kontrak',
+                                required : true,
+                                attributes: ['id_kontrak','kod_kontrak','tajuk_ringkas']                   
+                            },
+                            {                                
+                                model : PenggunaModel,
+                                as : 'Tukang',
+                                required : true,
+                                attributes: ['nama']                   
+                            },                    
+                            {
+                                model : KodKeduaModel,
+                                as : 'JenisKerja',
+                                required : true,
+                                attributes: ['kod_ref','keterangan']     
+                            },                    
+                        ]
+                    },
+                    {                                
+                        model : PenggunaModel,
+                        as : 'Staf',
+                        required : true,
+                        attributes: ['nama']                   
+                    }, 
+  
+                ]
+
+            });
+
+            // return res.status(200).send(detailInvoice);
+
+
+            //html mapping per Pemakai
+
+
+
+            var html = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/kiraanupah/invoice.html'), 'utf8');
+
+            html = html.replace('{nama}', detailInvoice.KadarUpah.Tukang.nama.toUpperCase());
+            html = html.replace('{alamat}', 'Selangor');
+            html = html.replace('{no_invoice}', detailInvoice.no_invoice);
+            html = html.replace('{tarikh}',  moment(detailInvoice.tarikh_invoice).format('YYYY/MM/DD'));
+          
+            var listInvoice = "" 
+
+            listInvoice += "<tr>"
+            listInvoice += "<td>"+detailInvoice.KadarUpah.Kontrak.kod_kontrak+" - "+detailInvoice.KadarUpah.Kontrak.tajuk_ringkas+"</td>"
+            listInvoice += "<td>"+detailInvoice.KadarUpah.JenisKerja.keterangan+"</td>"
+            listInvoice += "<td>"+detailInvoice.jumlah_upah+"</td>"
+            listInvoice += "</tr>"
+
+            html = html.replace('{invoice}', listInvoice);            
+
+            var options = { 
+                // format: 'Letter' , 
+                type: "pdf",
+            };
+
+                    function downloadPdf() {
+                        return new Promise((resolve, reject) => {
+                            return pdf.create(html).toStream(function (err, stream) {
+                                if (err) return res.send(err);
+                                res.type('pdf');
+                                stream.pipe(res);               
+                            });
+                        });  
+                    } 
+        
+                    await downloadPdf(html, options);
+
+                // return res.status(200).send(listTempahanTukang);
+            
+        } catch (error) {
+            console.log(error)
             return res.status(400).send(error);
         }
     },

@@ -1,0 +1,81 @@
+<html>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&display=swap" rel="stylesheet" />
+<style>
+  .table {
+    border-collapse: collapse;
+    text-align: left;
+    width: 100%;
+    font-size: 0.4rem;
+    background: #fff;
+  }
+
+  .table th,
+  .table td {
+    padding: 3px;
+    border: 0.5px solid #8B9BB2;
+  }
+
+  .table td {
+    vertical-align: top;
+  }
+</style>
+
+<div style="font-family: 'Roboto', sans-serif;font-size:12px;padding:20px;width:100%;max-width:80%;color:#8B9BB2;">
+  <div style="text-transform: uppercase">
+    <h2 style="font-weight:900;margin:0;color:#D5351C;">Invois</h2>
+  </div>
+  <div style="margin:30px 0;">
+    <table style="width:100%">
+      <tr>
+        <td>
+            <p style="color:#333;font-size:1.1rem;font-weight: bold;">
+              {nama}
+            </p>
+            <p style="color:#333;font-size:0.75rem;">
+              No. 10, Jalan Melor, <br>
+              Taman Megah Holding,<br>
+              53100 Gombak,<br>
+              Selangor
+            </p>
+        </td>
+        <td style="text-align:right;vertical-align: top;">
+          <p style="margin:0;color:#8B9BB2;font-size:0.6rem;margin:10px 0;">
+            No. Invois<br />
+            <span style="color:#333;font-size:1.1rem;font-weight: bold;">{no_invoice}</span>
+          </p>
+          <p style="margin:0;color:#8B9BB2;font-size:0.6rem;margin:10px 0;">
+            Tarikh<br />
+            <span style="color:#333;font-size:0.75rem;">{tarikh}</span>
+          </p>
+		  <!-- <p style="margin:0;color:#8B9BB2;font-size:0.6rem;margin:10px 0;">
+            No. Akaun<br />
+            <span style="color:#333;font-size:0.75rem;">{no_akaun}</span>
+          </p> -->
+        </td>
+      </tr>
+    </table>
+  </div>
+  <table cellspacing="0" style="text-align:left;width:100%;">
+    <thead>
+      <tr style="border-bottom:2px solid #000;">
+        <th style="font-size: 0.6rem;font-weight:300;padding:4px 0;border-bottom:2px solid #8B9BB2;color:#8B9BB2;">
+            Kontrak
+        </th>
+        <th style="font-size: 0.6rem;font-weight:300;padding:4px 0;border-bottom:2px solid #8B9BB2;color:#8B9BB2;">
+            Jenis Kerja
+        </th>
+        <th style="font-size: 0.6rem;font-weight:300;padding:4px 0;border-bottom:2px solid #8B9BB2;color:#8B9BB2;">
+            Amaun (RM)
+        </th>
+      </tr>
+    </thead>
+    <tbody style="text-transform: uppercase;font-weight: 700;">
+      {invoice}
+    </tbody>
+  </table>
+</div>
+<div style="margin-top:80px;text-align:center;">
+  <p style="color:#8B9BB2;font-style:italic;font-size:10px;">(Invois ini dikeluarkan oleh Maroz Tailoring melalui cetakan komputer dan tidak memerlukan tandatangan.)</p>
+</div>
+
+</html>

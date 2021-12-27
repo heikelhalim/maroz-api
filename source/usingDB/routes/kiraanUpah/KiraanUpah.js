@@ -11,4 +11,7 @@ router.post('/kiraanUpah/createInvoice', Auth.verifyToken,  KadarUpah.createInvo
 router.post('/kiraanUpah/getListInvoice', Auth.verifyToken,  KadarUpah.getListInvoice);
 router.get('/kiraanUpah/getDetailInvoice/:id', Auth.verifyToken,  KadarUpah.getDetailInvoice);
 
+router.get('/kiraanUpah/printInvoice/:id', Auth.verifyToken,  KadarUpah.cetakInvoice);
+
+
 module.exports = router;
