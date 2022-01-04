@@ -99,6 +99,9 @@ app.use(require('./source/usingDB/routes/deliveryorder/DeliveryOrder'));
 //KiraanUpah
 app.use(require('./source/usingDB/routes/kiraanUpah/KiraanUpah')); 
 
+//Settings
+app.use(require('./source/usingDB/routes/settings/Settings')); 
+
 
 // set port, listen for requests
 const PORT = process.env.PORT || 80;
