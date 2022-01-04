@@ -120,17 +120,21 @@ const Settings = {
                         {
                             model : PenggunaModel,
                             columnsLike : [
-                                'kod_buku',
-                                'nama'
+                                 'nama'
                             ]
-                        }
+                        },
+                        {
+                            model : JenisKerjaModel,
+                            columnsEqual : ['id_job'],
+                            joinAlias : 'Job'                                                      
+                        },
+
                     ]),
                     { 
                         is_pengguna_sistem : false,
                         is_active : true 
                     }           
                 ],
-                // subQuery: false,
                 distinct : true,
                 attributes: { 
                              exclude: ['created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']
