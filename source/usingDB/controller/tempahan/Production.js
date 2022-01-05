@@ -797,8 +797,8 @@ const Production = {
             html = html.replace('{image}', htmlfrag);
 
             var options = { 
-                format: 'Letter' ,
-                type: "pdf"
+                // format: 'Letter' ,
+                // type: "pdf"
             };
 
             function downloadPdf() {
