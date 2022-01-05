@@ -1056,7 +1056,7 @@ const Production = {
                         {
       
                             var htmllampiran = fs.readFileSync(path.resolve(process.env.ROOT_URL, 'template/ukuranDesign/sub_ukuran_lampiran.html'), 'utf8');
-                            var base64str = Production.base64_encode('test.jpg');  
+                            var base64str = Production.base64_encode('public/upload/pakaian/'+lampiran.DesignPakaian.file_name);  
 
                             htmllampiran = htmllampiran.replace('{nama_tukang}', detailTukang.nama.toUpperCase());                            
                             htmllampiran = htmllampiran.replace('{jenis_kerja}',"KERJA "+ body.flowProduction.toUpperCase());                            
@@ -1101,7 +1101,6 @@ const Production = {
                         });  
                     } 
         
-
                     await downloadPdf(htmlMainUkuran, options);
                 }
 
