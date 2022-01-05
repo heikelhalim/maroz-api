@@ -13,7 +13,10 @@ var storagePakaian = multer.diskStorage({
     },
     filename: function (req, file, cb) {
       
-      cb(null, 'pkn-'+req.body.kod_design+'-'+ Date.now()+path.extname(file.originalname))
+      var extension = path.extname(file.originalname)
+      var fileName = path.basename(file.originalname,extension)
+
+      cb(null, 'pkn-'+fileName+'-'+ Date.now()+extension)
     }
   })
   
