@@ -1101,7 +1101,6 @@ const Production = {
                         });  
                     } 
         
-                    return res.status(200).send(htmlMainUkuran);
 
                     await downloadPdf(htmlMainUkuran, options);
                 }
