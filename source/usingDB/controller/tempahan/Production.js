@@ -657,6 +657,78 @@ const Production = {
         }
     },    
 
+    // async assignPendingToProses_lama (req,res) {
+    //     try {
+
+    //         const transaction = await TempahanProductionModel.sequelize.transaction();
+
+    //         const flowProduction = req.body.flowProduction;
+
+    //         var data= {}                    
+            
+    //         const idStatusProses = await Helper.getIdKodKedua("PRS", 'ref_status_production') 
+
+
+
+    //         if (flowProduction == "potong")
+    //         {
+    //             data["status_potong"] = idStatusProses;
+    //             data["tarikh_mula_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+                
+    //         }
+    //         else if (flowProduction == "jahit")
+    //         {
+    //             data["status_jahit"] = idStatusProses;
+    //             data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');            
+    //         }
+    //         else if (flowProduction == "sulam")
+    //         {
+    //             data["status_sulam"] = idStatusProses;
+    //             data["tarikh_mula_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                
+    //         }
+    //         else if (flowProduction == "butang")
+    //         {
+    //             data["status_butang"] = idStatusProses;
+    //             data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                
+    //         }
+    //         else if (flowProduction == "qc")
+    //         {
+    //             data["status_qc"] = idStatusProses;
+    //             data["tarikh_mula_qc"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+    //         }
+    //         else if (flowProduction == "packaging")
+    //         {
+    //             data["status_packaging"] = idStatusProses;
+    //             data["tarikh_mula_packaging"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+    //         }
+
+    //         const arrayTempahan = req.body.idTempahanProduction;
+
+    //         if (arrayTempahan.length>0)
+    //         {
+    //             //if ada item array
+
+    //             await TempahanProductionModel.update(data,{
+    //                 where : { id_tempahan_production : arrayTempahan },
+    //                 transaction : transaction
+    //             })
+       
+    //             await transaction.commit();
+
+    //         }
+                 
+            
+    //         return res.status(200).send({ "message" : "Success Assign" });
+
+    //     } catch (error) {
+    //         console.log(error);
+    //         return res.status(400).send(error);
+    //     }
+    // },
+
     async assignPendingToProses (req,res) {
         try {
 
@@ -668,32 +740,140 @@ const Production = {
             
             const idStatusProses = await Helper.getIdKodKedua("PRS", 'ref_status_production') 
 
-
+            const arrayTempahan = req.body.idTempahanProduction;
 
             if (flowProduction == "potong")
             {
-                data["status_potong"] = idStatusProses;
-                data["tarikh_mula_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+                if (arrayTempahan.length>0)
+                {
+                    for (var tempahanProd of arrayTempahan)
+                    {
+                        data["status_potong"] = idStatusProses;
+                        data["tarikh_mula_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+                        if (tempahanProd.outsource_jahit == true)
+                        {
+                            data["status_jahit"] = idStatusProses;
+                            data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');   
+                        }
+
+                        if (tempahanProd.outsource_butang == true)
+                        {
+                            data["status_butang"] = idStatusProses;
+                            data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');   
+                        }
+
+
+                        await TempahanProductionModel.update(data,{
+                            where : { id_tempahan_production : tempahanProd.id_tempahan_production },
+                            transaction : transaction
+                        })
+
+                        data = {}
+                    }
+                }
+
             }
             else if (flowProduction == "jahit")
             {
-                data["status_jahit"] = idStatusProses;
-                data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');            
-            }
-            else if (flowProduction == "sulam")
-            {
-                data["status_sulam"] = idStatusProses;
-                data["tarikh_mula_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                
+               
+                if (arrayTempahan.length>0)
+                {
+                    for (var tempahanProd of arrayTempahan)
+                    {
+                        data["status_jahit"] = idStatusProses;
+                        data["tarikh_mula_jahit"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');    
+        
+                        if (tempahanProd.outsource_butang == true)
+                        {
+                            data["status_butang"] = idStatusProses;
+                            data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');   
+                        }
+
+                        await TempahanProductionModel.update(data,{
+                            where : { id_tempahan_production : tempahanProd.id_tempahan_production },
+                            transaction : transaction
+                        })
+
+                        data = {}
+                        
+                    }
+                }             
             }
             else if (flowProduction == "butang")
             {
+
+
                 data["status_butang"] = idStatusProses;
-                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');                
+                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');  
+
+                var arrayIdTempProd = []
+
+                if (arrayTempahan.length>0)
+                {
+                    for (var tempahanProd of arrayTempahan)
+                    {
+                        arrayIdTempProd.push(tempahanProd.id_tempahan_production);
+                        
+                    }
+
+                    await TempahanProductionModel.update(data,{
+                        where : { id_tempahan_production : arrayIdTempProd },
+                        transaction : transaction
+                    })
+    
+                }
+    
+
+
+
+            }            
+            else if (flowProduction == "sulam")
+            {
+                data["status_sulam"] = idStatusProses;
+                data["tarikh_mula_sulam"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');  
+
+                var arrayIdTempProd = []
+
+                if (arrayTempahan.length>0)
+                {
+                    for (var tempahanProd of arrayTempahan)
+                    {
+                        arrayIdTempProd.push(tempahanProd.id_tempahan_production);
+                        
+                    }
+
+                    await TempahanProductionModel.update(data,{
+                        where : { id_tempahan_production : arrayIdTempProd },
+                        transaction : transaction
+                    })
+    
+                }
+    
+                
             }
             else if (flowProduction == "qc")
             {
                 data["status_qc"] = idStatusProses;
                 data["tarikh_mula_qc"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+                var arrayIdTempProd = []
+
+                if (arrayTempahan.length>0)
+                {
+                    for (var tempahanProd of arrayTempahan)
+                    {
+                        arrayIdTempProd.push(tempahanProd.id_tempahan_production);
+                        
+                    }
+
+                    await TempahanProductionModel.update(data,{
+                        where : { id_tempahan_production : arrayIdTempProd },
+                        transaction : transaction
+                    })
+    
+                }
+                    
 
             }
             else if (flowProduction == "packaging")
@@ -701,22 +881,31 @@ const Production = {
                 data["status_packaging"] = idStatusProses;
                 data["tarikh_mula_packaging"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
 
+                var arrayIdTempProd = []
+
+                if (arrayTempahan.length>0)
+                {
+                    for (var tempahanProd of arrayTempahan)
+                    {
+                        arrayIdTempProd.push(tempahanProd.id_tempahan_production);
+                        
+                    }
+
+                    await TempahanProductionModel.update(data,{
+                        where : { id_tempahan_production : arrayIdTempProd },
+                        transaction : transaction
+                    })
+    
+                }
+    
+
             }
 
-            const arrayTempahan = req.body.idTempahanProduction;
+            
 
-            if (arrayTempahan.length>0)
-            {
-                //if ada item array
+            await transaction.commit();
 
-                await TempahanProductionModel.update(data,{
-                    where : { id_tempahan_production : arrayTempahan },
-                    transaction : transaction
-                })
-       
-                await transaction.commit();
-
-            }
+    
                  
             
             return res.status(200).send({ "message" : "Success Assign" });
