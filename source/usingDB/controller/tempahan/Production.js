@@ -1618,8 +1618,15 @@ const Production = {
                 if (flowProduction == "potong")
                 {
                     data["status_potong"] = statusSelesai;
-                    data["status_jahit"] = statusBelumAgih;
                     data["tarikh_akhir_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
+
+                    //Check outsource or inhouse
+                    if (detailProd.outsource_jahit == null || detailProd.outsource_jahit == false)
+                    {
+                        data["status_jahit"] = statusBelumAgih;
+                    }
+                    
+
                 }
                 else if (flowProduction == "jahit")
                 {
@@ -1643,7 +1650,11 @@ const Production = {
 
                         if (detailProd.is_butang == true)
                         {
-                            data["status_butang"] = statusBelumAgih; 
+                             //Check outsource or inhouse
+                            if (detailProd.outsource_butang == null || detailProd.outsource_butang == false)
+                            {
+                                data["status_butang"] = statusBelumAgih; 
+                            }
                         }
 
                         if (detailProd.is_qc == true)
