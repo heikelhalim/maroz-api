@@ -44,6 +44,10 @@ module.exports = (sequelize, type) => {
         id_kadar_upah_butang : type.INTEGER,
         id_kadar_upah_jahit : type.INTEGER,        
         id_kontrak : type.INTEGER,
+        outsource_potong : type.BOOLEAN,
+        outsource_jahit : type.BOOLEAN,
+        outsource_butang : type.BOOLEAN,
+
         created_at : type.DATE,
         created_by : type.INTEGER,
         updated_at : type.DATE,

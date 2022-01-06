@@ -444,52 +444,110 @@ const Production = {
             {
                 const transaction = await TempahanProductionModel.sequelize.transaction();
 
-                const flowProduction = req.body.flowProduction;
 
                 var data= {}                    
-                
+                    
                 const idStatusPendingAgih = await Helper.getIdKodKedua("PEA", 'ref_status_production')
 
+                const flowProduction = req.body.flowProduction;
 
-                if (flowProduction == "potong")
+                if (req.body.jenis_tukang == "inhouse")
                 {
-                    data["id_tukang_potong"] = req.body.idTukang;
-                    data["status_potong"] = idStatusPendingAgih;
-                }
-                else if (flowProduction == "jahit")
-                {
-                    data["id_tukang_jahit"] = req.body.idTukang;
-                    data["status_jahit"] = idStatusPendingAgih;
-
-                }
-                else if (flowProduction == "sulam")
-                {
-                    data["id_tukang_sulam"] = req.body.idTukang;
-                    data["status_sulam"] = idStatusPendingAgih;
-                    data["is_lock"] = true;
-
-                }
-                else if (flowProduction == "butang")
-                {
-                    data["id_tukang_butang"] = req.body.idTukang;
-                    data["status_butang"] = idStatusPendingAgih;
-                    data["is_lock"] = true;
-
-                }
-                else if (flowProduction == "qc")
-                {
-                    data["id_tukang_qc"] = req.body.idTukang;
-                    data["status_qc"] = idStatusPendingAgih;
-                    data["is_lock"] = true;
-
-                }
-                else if (flowProduction == "packaging")
-                {
-                    data["id_tukang_packaging"] = req.body.idTukang;
-                    data["status_packaging"] = idStatusPendingAgih;
-
-                }
+                       
+                    if (flowProduction == "potong")
+                    {
+                        data["id_tukang_potong"] = req.body.idTukang;
+                        data["status_potong"] = idStatusPendingAgih;
+                    }
+                    else if (flowProduction == "jahit")
+                    {
+                        data["id_tukang_jahit"] = req.body.idTukang;
+                        data["status_jahit"] = idStatusPendingAgih;
     
+                    }
+                    else if (flowProduction == "sulam")
+                    {
+                        data["id_tukang_sulam"] = req.body.idTukang;
+                        data["status_sulam"] = idStatusPendingAgih;
+                        data["is_lock"] = true;
+    
+                    }
+                    else if (flowProduction == "butang")
+                    {
+                        data["id_tukang_butang"] = req.body.idTukang;
+                        data["status_butang"] = idStatusPendingAgih;
+                        data["is_lock"] = true;
+    
+                    }
+                    else if (flowProduction == "qc")
+                    {
+                        data["id_tukang_qc"] = req.body.idTukang;
+                        data["status_qc"] = idStatusPendingAgih;
+                        data["is_lock"] = true;
+    
+                    }
+                    else if (flowProduction == "packaging")
+                    {
+                        data["id_tukang_packaging"] = req.body.idTukang;
+                        data["status_packaging"] = idStatusPendingAgih;
+    
+                    }
+
+                }
+                else if (req.body.jenis_tukang == "outsource")
+                {
+                    const flowProductionOutsource = req.body.flowProductionOutSource;
+
+
+                    if (flowProduction=="potong")
+                    {
+                        if (flowProductionOutsource.includes("potong"))
+                        {
+                            data["id_tukang_potong"] = req.body.idTukang;
+                            data["status_potong"] = idStatusPendingAgih;
+                            data["outsource_potong"] = true;                         
+                        }
+                        if (flowProductionOutsource.includes("jahit"))
+                        {
+                            data["outsource_jahit"] = true;       
+                        }                       
+                        if (flowProductionOutsource.includes("butang"))
+                        {
+                            data["outsource_butang"] = true;
+                        } 
+    
+                    }
+                    else if (flowProduction=="jahit")
+                    {
+                        if (flowProductionOutsource.includes("jahit"))
+                        {                               
+                            data["id_tukang_jahit"] = req.body.idTukang;
+                            data["status_jahit"] = idStatusPendingAgih;                            
+                            data["outsource_jahit"] = true;  
+                        }                       
+                        if (flowProductionOutsource.includes("butang"))
+                        {
+                            data["outsource_butang"] = true;
+                        } 
+                    }
+                    else if (flowProduction=="butang")
+                    {
+                        if (flowProductionOutsource.includes("butang"))
+                        {
+                            data["id_tukang_butang"] = req.body.idTukang;
+                            data["status_butang"] = idStatusPendingAgih;
+                            data["outsource_butang"] = true;
+                        } 
+
+
+                    }
+
+
+
+                    
+
+                }
+
                 const arrayTempahan = req.body.idTempahanProduction;
     
                 if (arrayTempahan.length>0)
@@ -503,6 +561,9 @@ const Production = {
     
                     await transaction.commit();
                 }
+
+
+
                  
             }
             
@@ -531,11 +592,16 @@ const Production = {
             {
                 data["id_tukang_potong"] = null;
                 data["status_potong"] = idStatusPendingAgih;
+                data["outsource_potong"] = null;  
+                data["outsource_jahit"] = null; 
+                data["outsource_butang"] = null;                 
             }
             else if (flowProduction == "jahit")
             {
                 data["id_tukang_jahit"] = null;
                 data["status_jahit"] = idStatusPendingAgih;
+                data["outsource_jahit"] = null;  
+                data["outsource_butang"] = null;                   
 
             }
             else if (flowProduction == "sulam")
@@ -544,13 +610,13 @@ const Production = {
                 data["status_sulam"] = idStatusPendingAgih;
                 data["is_lock"] = false;
 
-
             }
             else if (flowProduction == "butang")
             {
                 data["id_tukang_butang"] = null;
                 data["status_butang"] = idStatusPendingAgih;
                 data["is_lock"] = false;
+                data["outsource_butang"] = null;  
 
             }
             else if (flowProduction == "qc")
