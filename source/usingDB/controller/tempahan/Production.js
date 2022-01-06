@@ -751,6 +751,9 @@ const Production = {
                         data["status_potong"] = idStatusProses;
                         data["tarikh_mula_potong"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');
 
+                        //
+                        //Untuk Senario Outsource 
+                        //
                         if (tempahanProd.outsource_jahit == true)
                         {
                             data["status_jahit"] = idStatusProses;
@@ -759,8 +762,37 @@ const Production = {
 
                         if (tempahanProd.outsource_butang == true)
                         {
-                            data["status_butang"] = idStatusProses;
-                            data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');   
+
+                            //Check kalau utk design pakaian ni ada butang ke..kalau takde tak perlu isi
+                            var existProd =  await TempahanProductionModel.findOne({
+                                where : { id_tempahan_production : tempahanProd.id_tempahan_production },
+                                include : [
+                                    {
+                                        model : TempahanUkuranModel,
+                                        as : "TempahanUkuran",
+                                        required : true,
+                                        attributes: ["id_tempahan_ukuran","id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
+                                        include : [
+                                            {
+                                                model : DesignPakaianModel,
+                                                as : 'DesignPakaian',
+                                                attributes: ["is_butang","is_sulam","is_qc"],
+                                            }                               
+                                        ]
+                                    }                        
+            
+                                ]            
+                            });
+
+
+                            //Update proses butang outsource
+                            if (existProd.TempahanUkuran.DesignPakaian.is_butang == true)
+                            {
+                                data["status_butang"] = idStatusProses;
+                                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');  
+                            }
+
+ 
                         }
 
 
@@ -786,9 +818,37 @@ const Production = {
         
                         if (tempahanProd.outsource_butang == true)
                         {
-                            data["status_butang"] = idStatusProses;
-                            data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');   
-                        }
+
+                            //Check kalau utk design pakaian ni ada butang ke..kalau takde tak perlu isi
+                            var existProd =  await TempahanProductionModel.findOne({
+                                where : { id_tempahan_production : tempahanProd.id_tempahan_production },
+                                include : [
+                                    {
+                                        model : TempahanUkuranModel,
+                                        as : "TempahanUkuran",
+                                        required : true,
+                                        attributes: ["id_tempahan_ukuran","id_pemakai_tempahan","id_dsgn_pakaian","id_jenis_pakaian","bilangan","kod_tempahan"],
+                                        include : [
+                                            {
+                                                model : DesignPakaianModel,
+                                                as : 'DesignPakaian',
+                                                attributes: ["is_butang","is_sulam","is_qc"],
+                                            }                               
+                                        ]
+                                    }                        
+            
+                                ]            
+                            });
+
+                            //Update proses butang outsource
+                            if (existProd.TempahanUkuran.DesignPakaian.is_butang == true)
+                            {
+                                data["status_butang"] = idStatusProses;
+                                data["tarikh_mula_butang"] = moment(new Date()).format('YYYY/MM/DD HH:mm:ss');  
+                            }
+
+ 
+                        }                        
 
                         await TempahanProductionModel.update(data,{
                             where : { id_tempahan_production : tempahanProd.id_tempahan_production },
