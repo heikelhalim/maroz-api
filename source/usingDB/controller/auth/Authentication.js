@@ -148,6 +148,7 @@ const Authentication = {
 
             var token = jwt.sign({ 
                 id: pengguna.id_pengguna,
+                nama : pengguna.nama,
                 role : roleLog,
                 permission : permissionLog
             }, process.env.SECRET, {
